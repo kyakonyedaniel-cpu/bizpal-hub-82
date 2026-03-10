@@ -69,7 +69,7 @@ const Reports = () => {
       const totalSales = allSales.reduce((s, r) => s + Number(r.total_amount), 0);
       const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
       const newInsights: string[] = [];
-      if (sorted.length > 0) newInsights.push(`🏆 "${sorted[0].name}" is your best seller with $${sorted[0].revenue.toFixed(2)} in revenue.`);
+      if (sorted.length > 0) newInsights.push(`🏆 "${sorted[0].name}" is your best seller with UGX ${sorted[0].revenue.toLocaleString()} in revenue.`);
       if (totalSales > totalExpenses) {
         newInsights.push(`📈 Your profit margin is ${((1 - totalExpenses / totalSales) * 100).toFixed(1)}%. Keep it up!`);
       } else if (totalSales > 0) {
