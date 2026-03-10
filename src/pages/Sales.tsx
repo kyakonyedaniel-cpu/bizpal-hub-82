@@ -94,9 +94,9 @@ const Sales = () => {
         <hr/>
         <div class="row"><span>Product:</span><span>${sale.products?.name || 'N/A'}</span></div>
         <div class="row"><span>Qty:</span><span>${sale.quantity}</span></div>
-        <div class="row"><span>Unit Price:</span><span>$${Number(sale.unit_price).toFixed(2)}</span></div>
+        <div class="row"><span>Unit Price:</span><span>UGX ${Number(sale.unit_price).toLocaleString()}</span></div>
         <hr/>
-        <div class="row total"><span>Total:</span><span>$${Number(sale.total_amount).toFixed(2)}</span></div>
+        <div class="row total"><span>Total:</span><span>UGX ${Number(sale.total_amount).toLocaleString()}</span></div>
         <div class="row"><span>Payment:</span><span>${sale.payment_method}</span></div>
         ${sale.customers?.name ? `<div class="row"><span>Customer:</span><span>${sale.customers.name}</span></div>` : ''}
         <hr/><p style="text-align:center;font-size:12px">Thank you for your business!</p>
