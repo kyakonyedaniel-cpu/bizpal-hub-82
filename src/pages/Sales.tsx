@@ -126,7 +126,7 @@ const Sales = () => {
                   <SelectContent>
                     {products.map(p => (
                       <SelectItem key={p.id} value={p.id}>
-                        {p.name} (${Number(p.price).toFixed(2)}) — {p.stock_quantity} in stock
+                        {p.name} ({formatUGX(Number(p.price))}) — {p.stock_quantity} in stock
                       </SelectItem>
                     ))}
                   </SelectContent>
