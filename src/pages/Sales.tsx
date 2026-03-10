@@ -159,7 +159,7 @@ const Sales = () => {
               {selectedProduct && (
                 <div className="bg-muted rounded-lg p-3 text-sm">
                   <span className="text-muted-foreground">Total: </span>
-                  <span className="font-heading font-bold text-lg">${calculatedTotal.toFixed(2)}</span>
+                  <span className="font-heading font-bold text-lg">{formatUGX(calculatedTotal)}</span>
                 </div>
               )}
               <Button type="submit" className="w-full">Record Sale</Button>
