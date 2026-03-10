@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import { formatUGX } from '@/lib/currency';
 
 const Inventory = () => {
   const { user } = useAuth();
