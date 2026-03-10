@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import { TrendingUp, Award, AlertTriangle } from 'lucide-react';
+import { formatUGX } from '@/lib/currency';
 
 const COLORS = ['hsl(160, 60%, 38%)', 'hsl(38, 92%, 55%)', 'hsl(210, 80%, 55%)', 'hsl(0, 72%, 51%)', 'hsl(280, 60%, 50%)'];
 
