@@ -9,6 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, AlertTriangle } from 'lucide-react';
+import { formatUGX } from '@/lib/currency';
 
 const Inventory = () => {
   const { user } = useAuth();
@@ -155,8 +156,8 @@ const Inventory = () => {
                   <TableRow key={p.id}>
                     <TableCell className="font-medium">{p.name}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{p.category || '—'}</TableCell>
-                    <TableCell className="font-heading">${Number(p.price).toFixed(2)}</TableCell>
-                    <TableCell className="text-sm">${Number(p.cost_price || 0).toFixed(2)}</TableCell>
+                    <TableCell className="font-heading">{formatUGX(Number(p.price))}</TableCell>
+                    <TableCell className="text-sm">{formatUGX(Number(p.cost_price || 0))}</TableCell>
                     <TableCell>
                       <span className={`flex items-center gap-1 font-medium ${p.stock_quantity <= p.low_stock_threshold ? 'text-destructive' : ''}`}>
                         {p.stock_quantity <= p.low_stock_threshold && <AlertTriangle className="h-3 w-3" />}

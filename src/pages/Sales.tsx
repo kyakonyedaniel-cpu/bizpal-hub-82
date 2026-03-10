@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Printer } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatUGX } from '@/lib/currency';
 
 const PAYMENT_METHODS = ['Cash', 'MTN MoMo', 'Airtel Money', 'Bank'];
 
@@ -93,9 +94,9 @@ const Sales = () => {
         <hr/>
         <div class="row"><span>Product:</span><span>${sale.products?.name || 'N/A'}</span></div>
         <div class="row"><span>Qty:</span><span>${sale.quantity}</span></div>
-        <div class="row"><span>Unit Price:</span><span>$${Number(sale.unit_price).toFixed(2)}</span></div>
+        <div class="row"><span>Unit Price:</span><span>UGX ${Number(sale.unit_price).toLocaleString()}</span></div>
         <hr/>
-        <div class="row total"><span>Total:</span><span>$${Number(sale.total_amount).toFixed(2)}</span></div>
+        <div class="row total"><span>Total:</span><span>UGX ${Number(sale.total_amount).toLocaleString()}</span></div>
         <div class="row"><span>Payment:</span><span>${sale.payment_method}</span></div>
         ${sale.customers?.name ? `<div class="row"><span>Customer:</span><span>${sale.customers.name}</span></div>` : ''}
         <hr/><p style="text-align:center;font-size:12px">Thank you for your business!</p>
@@ -125,7 +126,7 @@ const Sales = () => {
                   <SelectContent>
                     {products.map(p => (
                       <SelectItem key={p.id} value={p.id}>
-                        {p.name} (${Number(p.price).toFixed(2)}) — {p.stock_quantity} in stock
+                        {p.name} ({formatUGX(Number(p.price))}) — {p.stock_quantity} in stock
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -158,7 +159,7 @@ const Sales = () => {
               {selectedProduct && (
                 <div className="bg-muted rounded-lg p-3 text-sm">
                   <span className="text-muted-foreground">Total: </span>
-                  <span className="font-heading font-bold text-lg">${calculatedTotal.toFixed(2)}</span>
+                  <span className="font-heading font-bold text-lg">{formatUGX(calculatedTotal)}</span>
                 </div>
               )}
               <Button type="submit" className="w-full">Record Sale</Button>
@@ -191,7 +192,7 @@ const Sales = () => {
                     <TableCell className="text-sm">{format(new Date(sale.sale_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell className="font-medium">{sale.products?.name}</TableCell>
                     <TableCell>{sale.quantity}</TableCell>
-                    <TableCell className="font-heading font-semibold">${Number(sale.total_amount).toFixed(2)}</TableCell>
+                    <TableCell className="font-heading font-semibold">{formatUGX(Number(sale.total_amount))}</TableCell>
                     <TableCell>
                       <span className="text-xs bg-secondary px-2 py-1 rounded-full">{sale.payment_method}</span>
                     </TableCell>

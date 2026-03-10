@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatUGX } from '@/lib/currency';
 
 const CATEGORIES = ['Rent', 'Utilities', 'Supplies', 'Transport', 'Marketing', 'Salaries', 'Other'];
 
@@ -57,7 +58,7 @@ const Expenses = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-heading font-bold">Expenses</h1>
-          <p className="text-muted-foreground text-sm">Total: <span className="font-heading font-bold text-foreground">${totalExpenses.toFixed(2)}</span></p>
+          <p className="text-muted-foreground text-sm">Total: <span className="font-heading font-bold text-foreground">{formatUGX(totalExpenses)}</span></p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
@@ -115,7 +116,7 @@ const Expenses = () => {
                     <TableCell className="text-sm">{format(new Date(exp.expense_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell className="font-medium">{exp.name}</TableCell>
                     <TableCell><span className="text-xs bg-secondary px-2 py-1 rounded-full">{exp.category}</span></TableCell>
-                    <TableCell className="font-heading font-semibold">${Number(exp.amount).toFixed(2)}</TableCell>
+                    <TableCell className="font-heading font-semibold">{formatUGX(Number(exp.amount))}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm" onClick={() => handleDelete(exp.id)}>
                         <Trash2 className="h-4 w-4 text-destructive" />

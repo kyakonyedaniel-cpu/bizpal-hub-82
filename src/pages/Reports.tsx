@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays, startOfMonth, endOfMonth } from 'date-fns';
 import { TrendingUp, Award, AlertTriangle } from 'lucide-react';
+import { formatUGX } from '@/lib/currency';
 
 const COLORS = ['hsl(160, 60%, 38%)', 'hsl(38, 92%, 55%)', 'hsl(210, 80%, 55%)', 'hsl(0, 72%, 51%)', 'hsl(280, 60%, 50%)'];
 
@@ -68,7 +69,7 @@ const Reports = () => {
       const totalSales = allSales.reduce((s, r) => s + Number(r.total_amount), 0);
       const totalExpenses = expenses.reduce((s, e) => s + Number(e.amount), 0);
       const newInsights: string[] = [];
-      if (sorted.length > 0) newInsights.push(`🏆 "${sorted[0].name}" is your best seller with $${sorted[0].revenue.toFixed(2)} in revenue.`);
+      if (sorted.length > 0) newInsights.push(`🏆 "${sorted[0].name}" is your best seller with UGX ${sorted[0].revenue.toLocaleString()} in revenue.`);
       if (totalSales > totalExpenses) {
         newInsights.push(`📈 Your profit margin is ${((1 - totalExpenses / totalSales) * 100).toFixed(1)}%. Keep it up!`);
       } else if (totalSales > 0) {
@@ -76,7 +77,7 @@ const Reports = () => {
       }
       if (sales.length > 0) {
         const avgSale = totalSales / allSales.length;
-        newInsights.push(`💰 Average transaction value: $${avgSale.toFixed(2)}`);
+        newInsights.push(`💰 Average transaction value: UGX ${Math.round(avgSale).toLocaleString()}`);
       }
       setInsights(newInsights);
     };
@@ -164,7 +165,7 @@ const Reports = () => {
                       <p className="text-xs text-muted-foreground">{p.qty} units sold</p>
                     </div>
                   </div>
-                  <span className="font-heading font-bold">${p.revenue.toFixed(2)}</span>
+                  <span className="font-heading font-bold">{formatUGX(p.revenue)}</span>
                 </div>
               ))}
             </div>

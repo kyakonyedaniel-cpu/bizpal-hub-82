@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingDown, TrendingUp, ShoppingCart, AlertTriangle, Package } from 'lucide-react';
+import { TrendingDown, TrendingUp, ShoppingCart, AlertTriangle, Package, Banknote } from 'lucide-react';
+import { formatUGX } from '@/lib/currency';
 import { format } from 'date-fns';
 
 interface DashboardData {
@@ -66,7 +67,7 @@ const Dashboard = () => {
     { title: 'Total Sales', value: data.totalSales, icon: ShoppingCart, color: 'text-primary' },
     { title: 'Total Expenses', value: data.totalExpenses, icon: TrendingDown, color: 'text-destructive' },
     { title: 'Net Profit', value: profit, icon: profit >= 0 ? TrendingUp : TrendingDown, color: profit >= 0 ? 'text-success' : 'text-destructive' },
-    { title: "Today's Sales", value: data.todaySales, icon: DollarSign, color: 'text-info', subtitle: `${data.todaySalesCount} transactions` },
+    { title: "Today's Sales", value: data.todaySales, icon: Banknote, color: 'text-info', subtitle: `${data.todaySalesCount} transactions` },
   ];
 
   if (loading) {
@@ -93,7 +94,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-heading font-bold">
-                {value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                {formatUGX(value)}
               </div>
               {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
             </CardContent>
@@ -119,7 +120,7 @@ const Dashboard = () => {
                       <span className="text-sm font-medium">{method}</span>
                     </div>
                     <span className="text-sm font-heading font-semibold">
-                      {total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      {formatUGX(total)}
                     </span>
                   </div>
                 ))}
