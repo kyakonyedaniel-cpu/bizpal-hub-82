@@ -77,7 +77,7 @@ const Reports = () => {
       }
       if (sales.length > 0) {
         const avgSale = totalSales / allSales.length;
-        newInsights.push(`💰 Average transaction value: $${avgSale.toFixed(2)}`);
+        newInsights.push(`💰 Average transaction value: UGX ${Math.round(avgSale).toLocaleString()}`);
       }
       setInsights(newInsights);
     };
