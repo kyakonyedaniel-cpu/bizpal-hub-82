@@ -58,7 +58,7 @@ const Expenses = () => {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-heading font-bold">Expenses</h1>
-          <p className="text-muted-foreground text-sm">Total: <span className="font-heading font-bold text-foreground">${totalExpenses.toFixed(2)}</span></p>
+          <p className="text-muted-foreground text-sm">Total: <span className="font-heading font-bold text-foreground">{formatUGX(totalExpenses)}</span></p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
