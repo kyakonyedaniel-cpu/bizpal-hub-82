@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatUGX } from '@/lib/currency';
 
 const Customers = () => {
   const { user } = useAuth();
