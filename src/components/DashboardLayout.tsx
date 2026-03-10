@@ -11,6 +11,7 @@ import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/pos', icon: Monitor, label: 'POS' },
   { href: '/sales', icon: ShoppingCart, label: 'Sales' },
   { href: '/inventory', icon: Package, label: 'Inventory' },
   { href: '/expenses', icon: Receipt, label: 'Expenses' },
