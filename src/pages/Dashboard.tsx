@@ -94,7 +94,7 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-heading font-bold">
-                {value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                {formatUGX(value)}
               </div>
               {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
             </CardContent>
