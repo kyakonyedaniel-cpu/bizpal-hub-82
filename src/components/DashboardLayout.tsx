@@ -4,7 +4,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/components/ThemeProvider';
 import {
   LayoutDashboard, ShoppingCart, Package, Receipt,
-  Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun
+  Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun, Monitor
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
