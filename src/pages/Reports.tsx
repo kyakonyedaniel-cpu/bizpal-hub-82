@@ -165,7 +165,7 @@ const Reports = () => {
                       <p className="text-xs text-muted-foreground">{p.qty} units sold</p>
                     </div>
                   </div>
-                  <span className="font-heading font-bold">${p.revenue.toFixed(2)}</span>
+                  <span className="font-heading font-bold">{formatUGX(p.revenue)}</span>
                 </div>
               ))}
             </div>

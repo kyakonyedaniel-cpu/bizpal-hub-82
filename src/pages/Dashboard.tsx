@@ -120,7 +120,7 @@ const Dashboard = () => {
                       <span className="text-sm font-medium">{method}</span>
                     </div>
                     <span className="text-sm font-heading font-semibold">
-                      {total.toLocaleString('en-US', { style: 'currency', currency: 'USD' })}
+                      {formatUGX(total)}
                     </span>
                   </div>
                 ))}

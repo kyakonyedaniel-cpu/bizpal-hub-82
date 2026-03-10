@@ -107,7 +107,7 @@ const Customers = () => {
                     <p className="font-medium text-sm">{s.products?.name}</p>
                     <p className="text-xs text-muted-foreground">{format(new Date(s.sale_date), 'MMM d, yyyy')}</p>
                   </div>
-                  <span className="font-heading font-bold">${Number(s.total_amount).toFixed(2)}</span>
+                  <span className="font-heading font-bold">{formatUGX(Number(s.total_amount))}</span>
                 </div>
               ))}
             </div>

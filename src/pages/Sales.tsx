@@ -192,7 +192,7 @@ const Sales = () => {
                     <TableCell className="text-sm">{format(new Date(sale.sale_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell className="font-medium">{sale.products?.name}</TableCell>
                     <TableCell>{sale.quantity}</TableCell>
-                    <TableCell className="font-heading font-semibold">${Number(sale.total_amount).toFixed(2)}</TableCell>
+                    <TableCell className="font-heading font-semibold">{formatUGX(Number(sale.total_amount))}</TableCell>
                     <TableCell>
                       <span className="text-xs bg-secondary px-2 py-1 rounded-full">{sale.payment_method}</span>
                     </TableCell>

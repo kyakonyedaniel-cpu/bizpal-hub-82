@@ -116,7 +116,7 @@ const Expenses = () => {
                     <TableCell className="text-sm">{format(new Date(exp.expense_date), 'MMM d, yyyy')}</TableCell>
                     <TableCell className="font-medium">{exp.name}</TableCell>
                     <TableCell><span className="text-xs bg-secondary px-2 py-1 rounded-full">{exp.category}</span></TableCell>
-                    <TableCell className="font-heading font-semibold">${Number(exp.amount).toFixed(2)}</TableCell>
+                    <TableCell className="font-heading font-semibold">{formatUGX(Number(exp.amount))}</TableCell>
                     <TableCell>
                       <Button variant="ghost" size="sm" onClick={() => handleDelete(exp.id)}>
                         <Trash2 className="h-4 w-4 text-destructive" />

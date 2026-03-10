@@ -92,7 +92,7 @@ const Index = () => {
           <div className="glass-card rounded-xl p-8 border-primary/30 relative">
             <div className="absolute -top-3 left-6 bg-primary text-primary-foreground text-xs font-medium px-3 py-1 rounded-full">Popular</div>
             <h3 className="font-heading font-bold text-xl mb-2">Premium</h3>
-            <p className="text-3xl font-heading font-bold mb-4">$9<span className="text-base font-normal text-muted-foreground">/mo</span></p>
+            <p className="text-3xl font-heading font-bold mb-4">UGX 30,000<span className="text-base font-normal text-muted-foreground">/mo</span></p>
             <ul className="space-y-2 text-sm text-muted-foreground mb-6">
               <li className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary" />Unlimited sales records</li>
               <li className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary" />Advanced reports & charts</li>
