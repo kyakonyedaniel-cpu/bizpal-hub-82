@@ -1,0 +1,241 @@
+import { useEffect, useState } from 'react';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useToast } from '@/hooks/use-toast';
+import { ShoppingCart, Plus, Minus, Trash2, Receipt, Package } from 'lucide-react';
+import { formatUGX } from '@/lib/currency';
+import { format } from 'date-fns';
+
+const PAYMENT_METHODS = ['Cash', 'MTN MoMo', 'Airtel Money', 'Bank'];
+
+interface CartItem {
+  product: any;
+  quantity: number;
+}
+
+const POS = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
+  const [products, setProducts] = useState<any[]>([]);
+  const [customers, setCustomers] = useState<any[]>([]);
+  const [cart, setCart] = useState<CartItem[]>([]);
+  const [paymentMethod, setPaymentMethod] = useState('Cash');
+  const [customerId, setCustomerId] = useState('');
+  const [processing, setProcessing] = useState(false);
+  const [search, setSearch] = useState('');
+
+  const fetchData = async () => {
+    if (!user) return;
+    const [p, c] = await Promise.all([
+      supabase.from('products').select('*').eq('user_id', user.id).gt('stock_quantity', 0).order('name'),
+      supabase.from('customers').select('*').eq('user_id', user.id),
+    ]);
+    setProducts(p.data || []);
+    setCustomers(c.data || []);
+  };
+
+  useEffect(() => { fetchData(); }, [user]);
+
+  const addToCart = (product: any) => {
+    setCart(prev => {
+      const existing = prev.find(i => i.product.id === product.id);
+      if (existing) {
+        if (existing.quantity >= product.stock_quantity) {
+          toast({ title: 'Max stock reached', variant: 'destructive' });
+          return prev;
+        }
+        return prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i);
+      }
+      return [...prev, { product, quantity: 1 }];
+    });
+  };
+
+  const updateQty = (productId: string, delta: number) => {
+    setCart(prev => prev.map(i => {
+      if (i.product.id !== productId) return i;
+      const newQty = i.quantity + delta;
+      if (newQty <= 0) return i;
+      if (newQty > i.product.stock_quantity) return i;
+      return { ...i, quantity: newQty };
+    }));
+  };
+
+  const removeFromCart = (productId: string) => {
+    setCart(prev => prev.filter(i => i.product.id !== productId));
+  };
+
+  const cartTotal = cart.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
+
+  const checkout = async () => {
+    if (!user || cart.length === 0) return;
+    setProcessing(true);
+
+    const inserts = cart.map(i => ({
+      user_id: user.id,
+      product_id: i.product.id,
+      quantity: i.quantity,
+      unit_price: i.product.price,
+      total_amount: i.product.price * i.quantity,
+      payment_method: paymentMethod,
+      customer_id: customerId || null,
+    }));
+
+    const { error } = await supabase.from('sales').insert(inserts);
+    setProcessing(false);
+
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return;
+    }
+
+    // Print receipt
+    const w = window.open('', '_blank', 'width=400,height=600');
+    if (w) {
+      const itemsHtml = cart.map(i =>
+        `<div class="row"><span>${i.product.name} x${i.quantity}</span><span>UGX ${(i.product.price * i.quantity).toLocaleString()}</span></div>`
+      ).join('');
+      w.document.write(`
+        <html><head><title>Receipt</title>
+        <style>body{font-family:monospace;padding:20px;max-width:350px;margin:0 auto}
+        h2{text-align:center;margin-bottom:4px}hr{border:1px dashed #ccc}
+        .row{display:flex;justify-content:space-between;margin:4px 0}
+        .total{font-size:1.2em;font-weight:bold}</style></head>
+        <body>
+          <h2>SmartBiz Receipt</h2>
+          <p style="text-align:center">${format(new Date(), 'PPp')}</p>
+          <hr/>${itemsHtml}<hr/>
+          <div class="row total"><span>Total:</span><span>UGX ${cartTotal.toLocaleString()}</span></div>
+          <div class="row"><span>Payment:</span><span>${paymentMethod}</span></div>
+          <hr/><p style="text-align:center;font-size:12px">Thank you for your business!</p>
+        </body></html>
+      `);
+      w.document.close();
+      w.print();
+    }
+
+    toast({ title: `Sale of ${formatUGX(cartTotal)} completed!` });
+    setCart([]);
+    fetchData();
+  };
+
+  const filtered = products.filter(p =>
+    p.name.toLowerCase().includes(search.toLowerCase()) ||
+    (p.category || '').toLowerCase().includes(search.toLowerCase())
+  );
+
+  return (
+    <div className="space-y-4 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
+          <ShoppingCart className="h-6 w-6" /> POS Mode
+        </h1>
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+        {/* Product grid */}
+        <div className="lg:col-span-2 space-y-3">
+          <input
+            type="text"
+            placeholder="Search products..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+            className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
+          />
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            {filtered.map(p => (
+              <button
+                key={p.id}
+                onClick={() => addToCart(p)}
+                className="glass-card rounded-xl p-3 text-left hover:border-primary/50 transition-all hover:shadow-md active:scale-95"
+              >
+                {p.image_url ? (
+                  <img src={p.image_url} alt={p.name} className="h-16 w-full object-cover rounded-lg mb-2" />
+                ) : (
+                  <div className="h-16 w-full bg-muted rounded-lg mb-2 flex items-center justify-center">
+                    <Package className="h-6 w-6 text-muted-foreground" />
+                  </div>
+                )}
+                <p className="font-medium text-sm truncate">{p.name}</p>
+                <p className="text-xs text-primary font-heading font-bold">{formatUGX(Number(p.price))}</p>
+                <p className="text-xs text-muted-foreground">{p.stock_quantity} in stock</p>
+              </button>
+            ))}
+            {filtered.length === 0 && (
+              <p className="col-span-full text-center text-muted-foreground text-sm py-8">No products found</p>
+            )}
+          </div>
+        </div>
+
+        {/* Cart */}
+        <Card className="glass-card h-fit sticky top-20">
+          <CardContent className="p-4 space-y-3">
+            <h2 className="font-heading font-bold text-lg flex items-center gap-2">
+              <Receipt className="h-5 w-5" /> Cart ({cart.length})
+            </h2>
+
+            {cart.length === 0 ? (
+              <p className="text-muted-foreground text-sm text-center py-6">Tap products to add</p>
+            ) : (
+              <div className="space-y-2 max-h-64 overflow-y-auto">
+                {cart.map(i => (
+                  <div key={i.product.id} className="flex items-center justify-between bg-muted/50 rounded-lg p-2">
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{i.product.name}</p>
+                      <p className="text-xs text-muted-foreground">{formatUGX(i.product.price * i.quantity)}</p>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQty(i.product.id, -1)}>
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                      <span className="text-sm font-bold w-6 text-center">{i.quantity}</span>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => updateQty(i.product.id, 1)}>
+                        <Plus className="h-3 w-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => removeFromCart(i.product.id)}>
+                        <Trash2 className="h-3 w-3 text-destructive" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="border-t border-border pt-3 space-y-3">
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Total</span>
+                <span className="text-xl font-heading font-bold">{formatUGX(cartTotal)}</span>
+              </div>
+
+              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                <SelectTrigger className="w-full"><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  {PAYMENT_METHODS.map(m => <SelectItem key={m} value={m}>{m}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <Select value={customerId} onValueChange={setCustomerId}>
+                <SelectTrigger className="w-full"><SelectValue placeholder="Walk-in customer" /></SelectTrigger>
+                <SelectContent>
+                  {customers.map(c => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
+                </SelectContent>
+              </Select>
+
+              <Button
+                className="w-full text-base h-12"
+                disabled={cart.length === 0 || processing}
+                onClick={checkout}
+              >
+                {processing ? 'Processing...' : `Checkout ${formatUGX(cartTotal)}`}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+};
+
+export default POS;

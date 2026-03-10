@@ -4,13 +4,14 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/components/ThemeProvider';
 import {
   LayoutDashboard, ShoppingCart, Package, Receipt,
-  Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun
+  Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun, Monitor
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
+  { href: '/pos', icon: Monitor, label: 'POS' },
   { href: '/sales', icon: ShoppingCart, label: 'Sales' },
   { href: '/inventory', icon: Package, label: 'Inventory' },
   { href: '/expenses', icon: Receipt, label: 'Expenses' },
