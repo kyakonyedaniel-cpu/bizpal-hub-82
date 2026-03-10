@@ -67,7 +67,7 @@ const Dashboard = () => {
     { title: 'Total Sales', value: data.totalSales, icon: ShoppingCart, color: 'text-primary' },
     { title: 'Total Expenses', value: data.totalExpenses, icon: TrendingDown, color: 'text-destructive' },
     { title: 'Net Profit', value: profit, icon: profit >= 0 ? TrendingUp : TrendingDown, color: profit >= 0 ? 'text-success' : 'text-destructive' },
-    { title: "Today's Sales", value: data.todaySales, icon: DollarSign, color: 'text-info', subtitle: `${data.todaySalesCount} transactions` },
+    { title: "Today's Sales", value: data.todaySales, icon: Banknote, color: 'text-info', subtitle: `${data.todaySalesCount} transactions` },
   ];
 
   if (loading) {
