@@ -10,6 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { useToast } from '@/hooks/use-toast';
 import { Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
+import { formatUGX } from '@/lib/currency';
 
 const CATEGORIES = ['Rent', 'Utilities', 'Supplies', 'Transport', 'Marketing', 'Salaries', 'Other'];
 
