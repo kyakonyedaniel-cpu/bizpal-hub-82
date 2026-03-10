@@ -1,9 +1,10 @@
 import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { useTheme } from '@/components/ThemeProvider';
 import {
   LayoutDashboard, ShoppingCart, Package, Receipt,
-  Users, BarChart3, LogOut, Menu, X, ChevronRight
+  Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -15,10 +16,12 @@ const navItems = [
   { href: '/expenses', icon: Receipt, label: 'Expenses' },
   { href: '/customers', icon: Users, label: 'Customers' },
   { href: '/reports', icon: BarChart3, label: 'Reports' },
+  { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
   const { signOut } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -88,15 +91,20 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
-        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border px-4 lg:px-8 h-16 flex items-center gap-4">
-          <button onClick={() => setSidebarOpen(true)} className="lg:hidden">
-            <Menu className="h-5 w-5 text-foreground" />
-          </button>
-          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <span>SmartBiz</span>
-            <ChevronRight className="h-3 w-3" />
-            <span className="text-foreground font-medium">{currentPage}</span>
+        <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border px-4 lg:px-8 h-16 flex items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <button onClick={() => setSidebarOpen(true)} className="lg:hidden">
+              <Menu className="h-5 w-5 text-foreground" />
+            </button>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span>SmartBiz</span>
+              <ChevronRight className="h-3 w-3" />
+              <span className="text-foreground font-medium">{currentPage}</span>
+            </div>
           </div>
+          <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9">
+            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+          </Button>
         </header>
         <main className="flex-1 p-4 lg:p-8 overflow-auto">
           {children}
