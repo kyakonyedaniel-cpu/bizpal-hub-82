@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { DollarSign, TrendingDown, TrendingUp, ShoppingCart, AlertTriangle, Package } from 'lucide-react';
+import { TrendingDown, TrendingUp, ShoppingCart, AlertTriangle, Package, Banknote } from 'lucide-react';
+import { formatUGX } from '@/lib/currency';
 import { format } from 'date-fns';
 
 interface DashboardData {
