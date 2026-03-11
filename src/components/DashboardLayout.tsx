@@ -4,10 +4,13 @@ import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/components/ThemeProvider';
 import {
   LayoutDashboard, ShoppingCart, Package, Receipt,
-  Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun, Monitor
+  Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun, Monitor,
+  Building2, UserCog, CreditCard
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+import BranchSelector from '@/components/BranchSelector';
+import OfflineSyncBanner from '@/components/OfflineSyncBanner';
 
 const navItems = [
   { href: '/dashboard', icon: LayoutDashboard, label: 'Dashboard' },
@@ -17,6 +20,9 @@ const navItems = [
   { href: '/expenses', icon: Receipt, label: 'Expenses' },
   { href: '/customers', icon: Users, label: 'Customers' },
   { href: '/reports', icon: BarChart3, label: 'Reports' },
+  { href: '/branches', icon: Building2, label: 'Branches' },
+  { href: '/staff', icon: UserCog, label: 'Staff' },
+  { href: '/subscription', icon: CreditCard, label: 'Subscription' },
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
@@ -36,12 +42,10 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
 
   return (
     <div className="min-h-screen flex bg-background">
-      {/* Mobile overlay */}
       {sidebarOpen && (
         <div className="fixed inset-0 bg-foreground/20 backdrop-blur-sm z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
       )}
 
-      {/* Sidebar */}
       <aside className={cn(
         "fixed inset-y-0 left-0 z-50 w-64 bg-sidebar border-r border-sidebar-border transform transition-transform lg:translate-x-0 lg:static lg:z-auto",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
@@ -56,7 +60,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
             </button>
           </div>
 
-          <nav className="flex-1 px-4 space-y-1">
+          <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
             {navItems.map(({ href, icon: Icon, label }) => {
               const active = location.pathname === href;
               return (
@@ -90,7 +94,6 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
         </div>
       </aside>
 
-      {/* Main content */}
       <div className="flex-1 flex flex-col min-w-0">
         <header className="sticky top-0 z-30 bg-background/80 backdrop-blur-sm border-b border-border px-4 lg:px-8 h-16 flex items-center justify-between gap-4">
           <div className="flex items-center gap-4">
@@ -103,10 +106,14 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
               <span className="text-foreground font-medium">{currentPage}</span>
             </div>
           </div>
-          <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9">
-            {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
-          </Button>
+          <div className="flex items-center gap-3">
+            <BranchSelector />
+            <Button variant="ghost" size="icon" onClick={toggleTheme} className="h-9 w-9">
+              {theme === 'dark' ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+            </Button>
+          </div>
         </header>
+        <OfflineSyncBanner />
         <main className="flex-1 p-4 lg:p-8 overflow-auto">
           {children}
         </main>
