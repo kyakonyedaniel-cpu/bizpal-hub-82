@@ -10,6 +10,7 @@ import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
 import { Settings as SettingsIcon, User, Building2, CreditCard, Moon } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { Link } from 'react-router-dom';
 
 const Settings = () => {
   const { user } = useAuth();
@@ -49,7 +50,6 @@ const Settings = () => {
         <SettingsIcon className="h-6 w-6" /> Settings
       </h1>
 
-      {/* Business Profile */}
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="font-heading flex items-center gap-2">
@@ -71,7 +71,6 @@ const Settings = () => {
         </CardContent>
       </Card>
 
-      {/* Account */}
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="font-heading flex items-center gap-2">
@@ -90,7 +89,6 @@ const Settings = () => {
         </CardContent>
       </Card>
 
-      {/* Appearance */}
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="font-heading flex items-center gap-2">
@@ -108,7 +106,6 @@ const Settings = () => {
         </CardContent>
       </Card>
 
-      {/* Subscription */}
       <Card className="glass-card">
         <CardHeader>
           <CardTitle className="font-heading flex items-center gap-2">
@@ -126,9 +123,11 @@ const Settings = () => {
             <span className="text-sm text-muted-foreground">Sales Recorded</span>
             <span className="text-sm font-heading font-bold">{profile?.sales_count || 0}{profile?.plan !== 'premium' ? ' / 50' : ''}</span>
           </div>
-          {profile?.plan !== 'premium' && (
-            <p className="text-xs text-muted-foreground">Upgrade to Premium for unlimited sales records and advanced reports.</p>
-          )}
+          <Link to="/subscription">
+            <Button variant="outline" className="w-full mt-2">
+              Manage Subscription
+            </Button>
+          </Link>
         </CardContent>
       </Card>
     </div>

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useBranch } from '@/contexts/BranchContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,11 +12,13 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatUGX } from '@/lib/currency';
+import { saveOfflineExpense } from '@/lib/offlineDb';
 
 const CATEGORIES = ['Rent', 'Utilities', 'Supplies', 'Transport', 'Marketing', 'Salaries', 'Other'];
 
 const Expenses = () => {
   const { user } = useAuth();
+  const { currentBranch, allBranchesMode } = useBranch();
   const { toast } = useToast();
   const [expenses, setExpenses] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
@@ -23,27 +26,43 @@ const Expenses = () => {
 
   const fetchExpenses = async () => {
     if (!user) return;
-    const { data } = await supabase.from('expenses').select('*').eq('user_id', user.id).order('expense_date', { ascending: false });
+    let query = supabase.from('expenses').select('*').eq('user_id', user.id).order('expense_date', { ascending: false });
+    if (!allBranchesMode && currentBranch) query = query.eq('branch_id', currentBranch.id);
+    const { data } = await query;
     setExpenses(data || []);
   };
 
-  useEffect(() => { fetchExpenses(); }, [user]);
+  useEffect(() => { fetchExpenses(); }, [user, currentBranch, allBranchesMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!user) return;
-    const { error } = await supabase.from('expenses').insert({
-      user_id: user.id, name: form.name, amount: parseFloat(form.amount) || 0,
-      category: form.category, expense_date: form.expense_date, notes: form.notes || null,
-    });
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+
+    const expenseData: any = {
+      user_id: user.id,
+      name: form.name,
+      amount: parseFloat(form.amount) || 0,
+      category: form.category,
+      expense_date: form.expense_date,
+      notes: form.notes || null,
+      branch_id: (!allBranchesMode && currentBranch) ? currentBranch.id : null,
+    };
+
+    if (!navigator.onLine) {
+      await saveOfflineExpense(expenseData);
+      toast({ title: 'Expense saved offline', description: 'Will sync when you\'re back online.' });
     } else {
+      const { error } = await supabase.from('expenses').insert(expenseData);
+      if (error) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        return;
+      }
       toast({ title: 'Expense added!' });
-      setForm({ name: '', amount: '', category: 'Other', expense_date: format(new Date(), 'yyyy-MM-dd'), notes: '' });
-      setOpen(false);
-      fetchExpenses();
     }
+
+    setForm({ name: '', amount: '', category: 'Other', expense_date: format(new Date(), 'yyyy-MM-dd'), notes: '' });
+    setOpen(false);
+    fetchExpenses();
   };
 
   const handleDelete = async (id: string) => {
