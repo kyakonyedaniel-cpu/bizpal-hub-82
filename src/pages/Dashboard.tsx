@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useBranch } from '@/contexts/BranchContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { TrendingDown, TrendingUp, ShoppingCart, AlertTriangle, Package, Banknote } from 'lucide-react';
+import { TrendingDown, TrendingUp, ShoppingCart, AlertTriangle, Package, Banknote, Building2 } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
 import { format } from 'date-fns';
 
@@ -17,6 +18,7 @@ interface DashboardData {
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { currentBranch, allBranchesMode } = useBranch();
   const [data, setData] = useState<DashboardData>({
     totalSales: 0, totalExpenses: 0, todaySales: 0, todaySalesCount: 0,
     lowStockProducts: [], salesByMethod: [],
@@ -26,13 +28,23 @@ const Dashboard = () => {
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
+      setLoading(true);
       const today = format(new Date(), 'yyyy-MM-dd');
 
+      let salesQuery = supabase.from('sales').select('total_amount, payment_method').eq('user_id', user.id);
+      let expensesQuery = supabase.from('expenses').select('amount').eq('user_id', user.id);
+      let todaySalesQuery = supabase.from('sales').select('total_amount').eq('user_id', user.id).gte('sale_date', today);
+      let productsQuery = supabase.from('products').select('name, stock_quantity, low_stock_threshold').eq('user_id', user.id);
+
+      if (!allBranchesMode && currentBranch) {
+        salesQuery = salesQuery.eq('branch_id', currentBranch.id);
+        expensesQuery = expensesQuery.eq('branch_id', currentBranch.id);
+        todaySalesQuery = todaySalesQuery.eq('branch_id', currentBranch.id);
+        productsQuery = productsQuery.eq('branch_id', currentBranch.id);
+      }
+
       const [salesRes, expensesRes, todaySalesRes, lowStockRes] = await Promise.all([
-        supabase.from('sales').select('total_amount, payment_method').eq('user_id', user.id),
-        supabase.from('expenses').select('amount').eq('user_id', user.id),
-        supabase.from('sales').select('total_amount').eq('user_id', user.id).gte('sale_date', today),
-        supabase.from('products').select('name, stock_quantity, low_stock_threshold').eq('user_id', user.id),
+        salesQuery, expensesQuery, todaySalesQuery, productsQuery,
       ]);
 
       const sales = salesRes.data || [];
@@ -49,17 +61,13 @@ const Dashboard = () => {
         methodMap[s.payment_method] = (methodMap[s.payment_method] || 0) + Number(s.total_amount);
       });
       const salesByMethod = Object.entries(methodMap).map(([method, total]) => ({ method, total }));
-
       const lowStockProducts = products.filter(p => p.stock_quantity <= p.low_stock_threshold);
 
-      setData({
-        totalSales, totalExpenses, todaySales: todaySalesTotal,
-        todaySalesCount: todaySales.length, lowStockProducts, salesByMethod,
-      });
+      setData({ totalSales, totalExpenses, todaySales: todaySalesTotal, todaySalesCount: todaySales.length, lowStockProducts, salesByMethod });
       setLoading(false);
     };
     fetchData();
-  }, [user]);
+  }, [user, currentBranch, allBranchesMode]);
 
   const profit = data.totalSales - data.totalExpenses;
 
@@ -83,7 +91,14 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <h1 className="text-2xl font-heading font-bold">Dashboard</h1>
+      <div className="flex items-center gap-3">
+        <h1 className="text-2xl font-heading font-bold">Dashboard</h1>
+        {!allBranchesMode && currentBranch && (
+          <span className="text-sm text-muted-foreground flex items-center gap-1">
+            <Building2 className="h-3 w-3" /> {currentBranch.branch_name}
+          </span>
+        )}
+      </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {statCards.map(({ title, value, icon: Icon, color, subtitle }) => (
@@ -93,9 +108,7 @@ const Dashboard = () => {
               <Icon className={`h-4 w-4 ${color}`} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-heading font-bold">
-                {formatUGX(value)}
-              </div>
+              <div className="text-2xl font-heading font-bold">{formatUGX(value)}</div>
               {subtitle && <p className="text-xs text-muted-foreground mt-1">{subtitle}</p>}
             </CardContent>
           </Card>
@@ -103,7 +116,6 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Sales by payment method */}
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-lg font-heading">Sales by Payment Method</CardTitle>
@@ -119,9 +131,7 @@ const Dashboard = () => {
                       <div className="w-2 h-2 rounded-full bg-primary" />
                       <span className="text-sm font-medium">{method}</span>
                     </div>
-                    <span className="text-sm font-heading font-semibold">
-                      {formatUGX(total)}
-                    </span>
+                    <span className="text-sm font-heading font-semibold">{formatUGX(total)}</span>
                   </div>
                 ))}
               </div>
@@ -129,7 +139,6 @@ const Dashboard = () => {
           </CardContent>
         </Card>
 
-        {/* Low stock alerts */}
         <Card className="glass-card">
           <CardHeader>
             <CardTitle className="text-lg font-heading flex items-center gap-2">
@@ -148,9 +157,7 @@ const Dashboard = () => {
                 {data.lowStockProducts.map((p) => (
                   <div key={p.name} className="flex items-center justify-between bg-destructive/5 rounded-lg p-3">
                     <span className="text-sm font-medium">{p.name}</span>
-                    <span className="text-sm font-heading font-bold text-destructive">
-                      {p.stock_quantity} left
-                    </span>
+                    <span className="text-sm font-heading font-bold text-destructive">{p.stock_quantity} left</span>
                   </div>
                 ))}
               </div>

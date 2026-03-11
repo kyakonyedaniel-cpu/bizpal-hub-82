@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useBranch } from '@/contexts/BranchContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -8,6 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { ShoppingCart, Plus, Minus, Trash2, Receipt, Package } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
 import { format } from 'date-fns';
+import { saveOfflineSale } from '@/lib/offlineDb';
 
 const PAYMENT_METHODS = ['Cash', 'MTN MoMo', 'Airtel Money', 'Bank'];
 
@@ -18,6 +20,7 @@ interface CartItem {
 
 const POS = () => {
   const { user } = useAuth();
+  const { currentBranch, allBranchesMode } = useBranch();
   const { toast } = useToast();
   const [products, setProducts] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
@@ -29,15 +32,17 @@ const POS = () => {
 
   const fetchData = async () => {
     if (!user) return;
+    let pQuery = supabase.from('products').select('*').eq('user_id', user.id).gt('stock_quantity', 0).order('name');
+    if (!allBranchesMode && currentBranch) pQuery = pQuery.eq('branch_id', currentBranch.id);
     const [p, c] = await Promise.all([
-      supabase.from('products').select('*').eq('user_id', user.id).gt('stock_quantity', 0).order('name'),
+      pQuery,
       supabase.from('customers').select('*').eq('user_id', user.id),
     ]);
     setProducts(p.data || []);
     setCustomers(c.data || []);
   };
 
-  useEffect(() => { fetchData(); }, [user]);
+  useEffect(() => { fetchData(); }, [user, currentBranch, allBranchesMode]);
 
   const addToCart = (product: any) => {
     setCart(prev => {
@@ -57,8 +62,7 @@ const POS = () => {
     setCart(prev => prev.map(i => {
       if (i.product.id !== productId) return i;
       const newQty = i.quantity + delta;
-      if (newQty <= 0) return i;
-      if (newQty > i.product.stock_quantity) return i;
+      if (newQty <= 0 || newQty > i.product.stock_quantity) return i;
       return { ...i, quantity: newQty };
     }));
   };
@@ -81,14 +85,19 @@ const POS = () => {
       total_amount: i.product.price * i.quantity,
       payment_method: paymentMethod,
       customer_id: customerId || null,
+      branch_id: (!allBranchesMode && currentBranch) ? currentBranch.id : null,
     }));
 
-    const { error } = await supabase.from('sales').insert(inserts);
-    setProcessing(false);
-
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-      return;
+    if (!navigator.onLine) {
+      for (const sale of inserts) await saveOfflineSale(sale);
+      toast({ title: 'Sales saved offline', description: 'Will sync when back online.' });
+    } else {
+      const { error } = await supabase.from('sales').insert(inserts);
+      if (error) {
+        setProcessing(false);
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        return;
+      }
     }
 
     // Print receipt
@@ -116,6 +125,7 @@ const POS = () => {
       w.print();
     }
 
+    setProcessing(false);
     toast({ title: `Sale of ${formatUGX(cartTotal)} completed!` });
     setCart([]);
     fetchData();
@@ -135,7 +145,6 @@ const POS = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-        {/* Product grid */}
         <div className="lg:col-span-2 space-y-3">
           <input
             type="text"
@@ -169,7 +178,6 @@ const POS = () => {
           </div>
         </div>
 
-        {/* Cart */}
         <Card className="glass-card h-fit sticky top-20">
           <CardContent className="p-4 space-y-3">
             <h2 className="font-heading font-bold text-lg flex items-center gap-2">

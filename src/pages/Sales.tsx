@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useBranch } from '@/contexts/BranchContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,34 +13,40 @@ import { useToast } from '@/hooks/use-toast';
 import { Plus, Printer } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatUGX } from '@/lib/currency';
+import { saveOfflineSale } from '@/lib/offlineDb';
 
 const PAYMENT_METHODS = ['Cash', 'MTN MoMo', 'Airtel Money', 'Bank'];
 
 const Sales = () => {
   const { user } = useAuth();
+  const { currentBranch, allBranchesMode } = useBranch();
   const { toast } = useToast();
   const [sales, setSales] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [customers, setCustomers] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
-  const [receiptSale, setReceiptSale] = useState<any>(null);
   const [form, setForm] = useState({
     product_id: '', quantity: '1', payment_method: 'Cash', customer_id: '', notes: '',
   });
 
   const fetchData = async () => {
     if (!user) return;
-    const [s, p, c] = await Promise.all([
-      supabase.from('sales').select('*, products(name), customers(name)').eq('user_id', user.id).order('sale_date', { ascending: false }),
-      supabase.from('products').select('*').eq('user_id', user.id).gt('stock_quantity', 0),
-      supabase.from('customers').select('*').eq('user_id', user.id),
-    ]);
+    let salesQ = supabase.from('sales').select('*, products(name), customers(name)').eq('user_id', user.id).order('sale_date', { ascending: false });
+    let productsQ = supabase.from('products').select('*').eq('user_id', user.id).gt('stock_quantity', 0);
+    let customersQ = supabase.from('customers').select('*').eq('user_id', user.id);
+
+    if (!allBranchesMode && currentBranch) {
+      salesQ = salesQ.eq('branch_id', currentBranch.id);
+      productsQ = productsQ.eq('branch_id', currentBranch.id);
+    }
+
+    const [s, p, c] = await Promise.all([salesQ, productsQ, customersQ]);
     setSales(s.data || []);
     setProducts(p.data || []);
     setCustomers(c.data || []);
   };
 
-  useEffect(() => { fetchData(); }, [user]);
+  useEffect(() => { fetchData(); }, [user, currentBranch, allBranchesMode]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -55,7 +62,7 @@ const Sales = () => {
     }
 
     const total = product.price * qty;
-    const { error } = await supabase.from('sales').insert({
+    const saleData: any = {
       user_id: user.id,
       product_id: form.product_id,
       quantity: qty,
@@ -64,16 +71,24 @@ const Sales = () => {
       payment_method: form.payment_method,
       customer_id: form.customer_id || null,
       notes: form.notes || null,
-    });
+      branch_id: (!allBranchesMode && currentBranch) ? currentBranch.id : null,
+    };
 
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    if (!navigator.onLine) {
+      await saveOfflineSale(saleData);
+      toast({ title: 'Sale saved offline', description: 'Will sync when you\'re back online.' });
     } else {
+      const { error } = await supabase.from('sales').insert(saleData);
+      if (error) {
+        toast({ title: 'Error', description: error.message, variant: 'destructive' });
+        return;
+      }
       toast({ title: 'Sale recorded!' });
-      setForm({ product_id: '', quantity: '1', payment_method: 'Cash', customer_id: '', notes: '' });
-      setOpen(false);
-      fetchData();
     }
+
+    setForm({ product_id: '', quantity: '1', payment_method: 'Cash', customer_id: '', notes: '' });
+    setOpen(false);
+    fetchData();
   };
 
   const selectedProduct = products.find(p => p.id === form.product_id);

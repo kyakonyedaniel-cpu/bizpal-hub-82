@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useBranch } from '@/contexts/BranchContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,6 +14,7 @@ import { formatUGX } from '@/lib/currency';
 
 const Inventory = () => {
   const { user } = useAuth();
+  const { currentBranch, allBranchesMode, branches } = useBranch();
   const { toast } = useToast();
   const [products, setProducts] = useState<any[]>([]);
   const [open, setOpen] = useState(false);
@@ -21,19 +23,21 @@ const Inventory = () => {
   const [uploading, setUploading] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    name: '', price: '', cost_price: '', stock_quantity: '', low_stock_threshold: '5', category: '', description: '',
+    name: '', price: '', cost_price: '', stock_quantity: '', low_stock_threshold: '5', category: '', description: '', branch_id: '',
   });
 
   const fetchProducts = async () => {
     if (!user) return;
-    const { data } = await supabase.from('products').select('*').eq('user_id', user.id).order('name');
+    let query = supabase.from('products').select('*').eq('user_id', user.id).order('name');
+    if (!allBranchesMode && currentBranch) query = query.eq('branch_id', currentBranch.id);
+    const { data } = await query;
     setProducts(data || []);
   };
 
-  useEffect(() => { fetchProducts(); }, [user]);
+  useEffect(() => { fetchProducts(); }, [user, currentBranch, allBranchesMode]);
 
   const resetForm = () => {
-    setForm({ name: '', price: '', cost_price: '', stock_quantity: '', low_stock_threshold: '5', category: '', description: '' });
+    setForm({ name: '', price: '', cost_price: '', stock_quantity: '', low_stock_threshold: '5', category: '', description: '', branch_id: '' });
     setEditing(null);
     setImageFile(null);
   };
@@ -43,10 +47,7 @@ const Inventory = () => {
     const ext = imageFile.name.split('.').pop();
     const path = `${user.id}/${productId}.${ext}`;
     const { error } = await supabase.storage.from('product-images').upload(path, imageFile, { upsert: true });
-    if (error) {
-      console.error('Upload error:', error);
-      return null;
-    }
+    if (error) return null;
     const { data } = supabase.storage.from('product-images').getPublicUrl(path);
     return data.publicUrl;
   };
@@ -65,6 +66,7 @@ const Inventory = () => {
       category: form.category || null,
       description: form.description || null,
       user_id: user.id,
+      branch_id: form.branch_id || ((!allBranchesMode && currentBranch) ? currentBranch.id : null),
     };
 
     if (editing) {
@@ -89,9 +91,7 @@ const Inventory = () => {
       }
       if (imageFile && data) {
         const url = await uploadImage(data.id);
-        if (url) {
-          await supabase.from('products').update({ image_url: url }).eq('id', data.id);
-        }
+        if (url) await supabase.from('products').update({ image_url: url }).eq('id', data.id);
       }
       setUploading(false);
       toast({ title: 'Product added!' });
@@ -109,6 +109,7 @@ const Inventory = () => {
       low_stock_threshold: String(product.low_stock_threshold),
       category: product.category || '',
       description: product.description || '',
+      branch_id: product.branch_id || '',
     });
     setImageFile(null);
     setOpen(true);
@@ -141,8 +142,6 @@ const Inventory = () => {
                 <Label>Name *</Label>
                 <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
               </div>
-
-              {/* Image upload */}
               <div className="space-y-2">
                 <Label>Product Image</Label>
                 <div
@@ -163,15 +162,8 @@ const Inventory = () => {
                     </div>
                   )}
                 </div>
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  className="hidden"
-                  onChange={e => setImageFile(e.target.files?.[0] || null)}
-                />
+                <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={e => setImageFile(e.target.files?.[0] || null)} />
               </div>
-
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
                   <Label>Selling Price *</Label>
@@ -196,6 +188,16 @@ const Inventory = () => {
                 <Label>Category</Label>
                 <Input value={form.category} onChange={e => setForm({ ...form, category: e.target.value })} placeholder="e.g., Electronics" />
               </div>
+              {branches.length > 0 && (
+                <div className="space-y-2">
+                  <Label>Branch</Label>
+                  <select className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
+                    value={form.branch_id} onChange={e => setForm({ ...form, branch_id: e.target.value })}>
+                    <option value="">No branch</option>
+                    {branches.map(b => <option key={b.id} value={b.id}>{b.branch_name}</option>)}
+                  </select>
+                </div>
+              )}
               <Button type="submit" className="w-full" disabled={uploading}>
                 {uploading ? 'Saving...' : editing ? 'Update' : 'Add'} Product
               </Button>
