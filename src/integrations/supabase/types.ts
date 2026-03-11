@@ -14,8 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      branches: {
+        Row: {
+          branch_name: string
+          created_at: string
+          id: string
+          location: string | null
+          user_id: string
+        }
+        Insert: {
+          branch_name: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          user_id: string
+        }
+        Update: {
+          branch_name?: string
+          created_at?: string
+          id?: string
+          location?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
       customers: {
         Row: {
+          branch_id: string | null
           created_at: string
           email: string | null
           id: string
@@ -26,6 +51,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -36,6 +62,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          branch_id?: string | null
           created_at?: string
           email?: string | null
           id?: string
@@ -45,11 +72,20 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "customers_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       expenses: {
         Row: {
           amount: number
+          branch_id: string | null
           category: string | null
           created_at: string
           expense_date: string
@@ -61,6 +97,7 @@ export type Database = {
         }
         Insert: {
           amount: number
+          branch_id?: string | null
           category?: string | null
           created_at?: string
           expense_date?: string
@@ -72,6 +109,7 @@ export type Database = {
         }
         Update: {
           amount?: number
+          branch_id?: string | null
           category?: string | null
           created_at?: string
           expense_date?: string
@@ -81,10 +119,49 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
+        Relationships: [
+          {
+            foreignKeyName: "expenses_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          payment_method: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_method: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          payment_method?: string
+          status?: string
+          user_id?: string
+        }
         Relationships: []
       }
       products: {
         Row: {
+          branch_id: string | null
           category: string | null
           cost_price: number | null
           created_at: string
@@ -99,6 +176,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          branch_id?: string | null
           category?: string | null
           cost_price?: number | null
           created_at?: string
@@ -113,6 +191,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          branch_id?: string | null
           category?: string | null
           cost_price?: number | null
           created_at?: string
@@ -126,7 +205,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "products_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
@@ -160,6 +247,7 @@ export type Database = {
       }
       sales: {
         Row: {
+          branch_id: string | null
           created_at: string
           customer_id: string | null
           id: string
@@ -173,6 +261,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          branch_id?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -186,6 +275,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          branch_id?: string | null
           created_at?: string
           customer_id?: string | null
           id?: string
@@ -199,6 +289,13 @@ export type Database = {
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sales_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sales_customer_id_fkey"
             columns: ["customer_id"]
@@ -214,6 +311,66 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      staff: {
+        Row: {
+          business_id: string
+          created_at: string
+          email: string
+          id: string
+          name: string
+          role: string
+          user_id: string
+        }
+        Insert: {
+          business_id: string
+          created_at?: string
+          email: string
+          id?: string
+          name: string
+          role?: string
+          user_id: string
+        }
+        Update: {
+          business_id?: string
+          created_at?: string
+          email?: string
+          id?: string
+          name?: string
+          role?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      subscriptions: {
+        Row: {
+          created_at: string
+          end_date: string | null
+          id: string
+          plan: string
+          start_date: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          plan?: string
+          start_date?: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          end_date?: string | null
+          id?: string
+          plan?: string
+          start_date?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: []
       }
     }
     Views: {
