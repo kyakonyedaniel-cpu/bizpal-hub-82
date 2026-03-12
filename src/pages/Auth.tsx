@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,14 +7,15 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/AuthContext';
-import { useEffect } from 'react';
 import { BarChart3, TrendingUp, Package, Users } from 'lucide-react';
 
 const Auth = () => {
+  const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [businessName, setBusinessName] = useState('');
+  const [referralCode, setReferralCode] = useState(searchParams.get('ref') || '');
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -23,6 +24,11 @@ const Auth = () => {
   useEffect(() => {
     if (user) navigate('/dashboard');
   }, [user, navigate]);
+
+  // If ref param present, default to signup
+  useEffect(() => {
+    if (searchParams.get('ref')) setIsLogin(false);
+  }, [searchParams]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,8 +42,27 @@ const Auth = () => {
       } else {
         const { error, data } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        if (data.user && businessName) {
-          await supabase.from('profiles').update({ business_name: businessName }).eq('user_id', data.user.id);
+        if (data.user) {
+          if (businessName) {
+            await supabase.from('profiles').update({ business_name: businessName }).eq('user_id', data.user.id);
+          }
+          // Record referral if code provided
+          if (referralCode.trim()) {
+            const { data: referrerProfile } = await supabase
+              .from('profiles')
+              .select('user_id')
+              .eq('referral_code', referralCode.trim().toUpperCase())
+              .single();
+            
+            if (referrerProfile) {
+              await supabase.from('referrals').insert({
+                referrer_user_id: referrerProfile.user_id,
+                referred_user_id: data.user.id,
+                referral_code: referralCode.trim().toUpperCase(),
+                reward_status: 'pending',
+              });
+            }
+          }
         }
         toast({ title: 'Account created!', description: 'Check your email to confirm your account.' });
       }
@@ -57,7 +82,6 @@ const Auth = () => {
 
   return (
     <div className="min-h-screen flex">
-      {/* Left panel */}
       <div className="hidden lg:flex lg:w-1/2 bg-sidebar flex-col justify-between p-12">
         <div>
           <h1 className="text-3xl font-heading font-bold text-sidebar-primary-foreground">
@@ -81,7 +105,6 @@ const Auth = () => {
         <p className="text-sidebar-foreground/50 text-sm">© 2026 SmartBiz Manager</p>
       </div>
 
-      {/* Right panel */}
       <div className="flex-1 flex items-center justify-center p-8 bg-background">
         <Card className="w-full max-w-md border-border/50 shadow-lg">
           <CardHeader className="text-center">
@@ -100,15 +123,27 @@ const Auth = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               {!isLogin && (
-                <div className="space-y-2">
-                  <Label htmlFor="businessName">Business Name</Label>
-                  <Input
-                    id="businessName"
-                    value={businessName}
-                    onChange={(e) => setBusinessName(e.target.value)}
-                    placeholder="My Business"
-                  />
-                </div>
+                <>
+                  <div className="space-y-2">
+                    <Label htmlFor="businessName">Business Name</Label>
+                    <Input
+                      id="businessName"
+                      value={businessName}
+                      onChange={(e) => setBusinessName(e.target.value)}
+                      placeholder="My Business"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="referralCode">Referral Code (optional)</Label>
+                    <Input
+                      id="referralCode"
+                      value={referralCode}
+                      onChange={(e) => setReferralCode(e.target.value)}
+                      placeholder="Enter referral code"
+                      className="uppercase"
+                    />
+                  </div>
+                </>
               )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
