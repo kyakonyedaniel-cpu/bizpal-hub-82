@@ -221,6 +221,7 @@ export type Database = {
           created_at: string
           id: string
           plan: string
+          referral_code: string | null
           sales_count: number
           updated_at: string
           user_id: string
@@ -230,6 +231,7 @@ export type Database = {
           created_at?: string
           id?: string
           plan?: string
+          referral_code?: string | null
           sales_count?: number
           updated_at?: string
           user_id: string
@@ -239,9 +241,37 @@ export type Database = {
           created_at?: string
           id?: string
           plan?: string
+          referral_code?: string | null
           sales_count?: number
           updated_at?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      referrals: {
+        Row: {
+          created_at: string
+          id: string
+          referral_code: string
+          referred_user_id: string | null
+          referrer_user_id: string
+          reward_status: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          referral_code: string
+          referred_user_id?: string | null
+          referrer_user_id: string
+          reward_status?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          referral_code?: string
+          referred_user_id?: string | null
+          referrer_user_id?: string
+          reward_status?: string
         }
         Relationships: []
       }
@@ -256,6 +286,7 @@ export type Database = {
           product_id: string
           quantity: number
           sale_date: string
+          sale_profit: number | null
           total_amount: number
           unit_price: number
           user_id: string
@@ -270,6 +301,7 @@ export type Database = {
           product_id: string
           quantity?: number
           sale_date?: string
+          sale_profit?: number | null
           total_amount: number
           unit_price: number
           user_id: string
@@ -284,6 +316,7 @@ export type Database = {
           product_id?: string
           quantity?: number
           sale_date?: string
+          sale_profit?: number | null
           total_amount?: number
           unit_price?: number
           user_id?: string
