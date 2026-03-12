@@ -4,57 +4,55 @@ import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { formatUGX } from '@/lib/currency';
-import { CreditCard, Check, Crown, Zap } from 'lucide-react';
+import { CreditCard, Check, Crown, Zap, Loader2 } from 'lucide-react';
 
 const Subscription = () => {
   const { user } = useAuth();
   const { toast } = useToast();
   const [profile, setProfile] = useState<any>(null);
   const [payments, setPayments] = useState<any[]>([]);
-  const [showPayDialog, setShowPayDialog] = useState(false);
-  const [payMethod, setPayMethod] = useState('MTN MoMo');
-  const [submitting, setSubmitting] = useState(false);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [initiating, setInitiating] = useState(false);
 
   useEffect(() => {
     if (!user) return;
     const fetchData = async () => {
-      const [profileRes, paymentsRes] = await Promise.all([
+      const [profileRes, paymentsRes, subRes] = await Promise.all([
         supabase.from('profiles').select('*').eq('user_id', user.id).single(),
         supabase.from('payments').select('*').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('subscriptions').select('*').eq('user_id', user.id).eq('status', 'active').order('created_at', { ascending: false }).limit(1),
       ]);
       setProfile(profileRes.data);
       setPayments(paymentsRes.data || []);
+      setSubscription(subRes.data?.[0] || null);
     };
     fetchData();
   }, [user]);
 
-  const handlePayment = async () => {
+  const initiatePesapalPayment = async () => {
     if (!user) return;
-    setSubmitting(true);
-    const { error } = await supabase.from('payments').insert({
-      user_id: user.id,
-      amount: 30000,
-      currency: 'UGX',
-      payment_method: payMethod,
-      status: 'pending',
-    });
-    setSubmitting(false);
-    if (error) {
-      toast({ title: 'Error', description: error.message, variant: 'destructive' });
-    } else {
-      toast({ title: 'Payment recorded!', description: 'Your payment is pending verification. You will be upgraded shortly.' });
-      setShowPayDialog(false);
-      // Refresh payments
-      const { data } = await supabase.from('payments').select('*').eq('user_id', user.id).order('created_at', { ascending: false });
-      setPayments(data || []);
+    setInitiating(true);
+    try {
+      const { data, error } = await supabase.functions.invoke('pesapal-checkout', {
+        body: { user_id: user.id, email: user.email, amount: 30000, currency: 'UGX' },
+      });
+      if (error) throw error;
+      if (data?.redirect_url) {
+        window.location.href = data.redirect_url;
+      } else {
+        toast({ title: 'Error', description: 'Failed to get payment URL', variant: 'destructive' });
+      }
+    } catch (err: any) {
+      toast({ title: 'Payment Error', description: err.message || 'Could not initiate payment', variant: 'destructive' });
+    } finally {
+      setInitiating(false);
     }
   };
 
   const isPremium = profile?.plan === 'premium';
+  const endDate = subscription?.end_date ? new Date(subscription.end_date) : null;
 
   const freeFeatures = ['Single branch', 'Up to 50 sales records', 'Basic reports', 'Limited products'];
   const premiumFeatures = ['Multi-branch support', 'Unlimited sales & products', 'Staff accounts & roles', 'Advanced reports & PDF export', 'Offline sync', 'Priority support'];
@@ -65,8 +63,15 @@ const Subscription = () => {
         <CreditCard className="h-6 w-6" /> Subscription
       </h1>
 
+      {isPremium && endDate && (
+        <Card className="glass-card border-accent/30">
+          <CardContent className="p-4">
+            <p className="text-sm">Your Premium subscription is active until <span className="font-bold">{endDate.toLocaleDateString()}</span></p>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* Free Plan */}
         <Card className={`glass-card ${!isPremium ? 'ring-2 ring-primary' : ''}`}>
           <CardHeader>
             <CardTitle className="font-heading flex items-center justify-between">
@@ -86,7 +91,6 @@ const Subscription = () => {
           </CardContent>
         </Card>
 
-        {/* Premium Plan */}
         <Card className={`glass-card ${isPremium ? 'ring-2 ring-primary' : 'border-accent/50'}`}>
           <CardHeader>
             <CardTitle className="font-heading flex items-center justify-between">
@@ -104,15 +108,14 @@ const Subscription = () => {
               ))}
             </ul>
             {!isPremium && (
-              <Button className="w-full" onClick={() => setShowPayDialog(true)}>
-                Upgrade to Premium
+              <Button className="w-full" onClick={initiatePesapalPayment} disabled={initiating}>
+                {initiating ? <><Loader2 className="h-4 w-4 mr-2 animate-spin" /> Processing...</> : 'Upgrade to Premium — Pay Now'}
               </Button>
             )}
           </CardContent>
         </Card>
       </div>
 
-      {/* Payment History */}
       {payments.length > 0 && (
         <Card className="glass-card">
           <CardHeader><CardTitle className="font-heading">Payment History</CardTitle></CardHeader>
@@ -136,46 +139,6 @@ const Subscription = () => {
           </CardContent>
         </Card>
       )}
-
-      {/* Pay Dialog */}
-      <Dialog open={showPayDialog} onOpenChange={setShowPayDialog}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle className="font-heading">Upgrade to Premium</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <div className="bg-muted rounded-lg p-4 space-y-2">
-              <p className="font-heading font-bold text-lg">Premium Plan — {formatUGX(30000)}/month</p>
-              <p className="text-sm text-muted-foreground">Pay using Mobile Money and click "I Have Paid" below.</p>
-            </div>
-
-            <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 space-y-2">
-              <p className="text-sm font-medium">Payment Instructions:</p>
-              <div className="text-sm space-y-1 text-muted-foreground">
-                <p>1. Open your Mobile Money app</p>
-                <p>2. Send <span className="font-bold text-foreground">{formatUGX(30000)}</span> to the payment number</p>
-                <p>3. Use your account email as reference</p>
-                <p>4. Come back and click "I Have Paid"</p>
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Payment Method</label>
-              <Select value={payMethod} onValueChange={setPayMethod}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="MTN MoMo">MTN Mobile Money</SelectItem>
-                  <SelectItem value="Airtel Money">Airtel Money</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <Button className="w-full" onClick={handlePayment} disabled={submitting}>
-              {submitting ? 'Recording...' : "I Have Paid"}
-            </Button>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   );
 };

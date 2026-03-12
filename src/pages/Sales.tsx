@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Printer } from 'lucide-react';
+import { Plus, Printer, Share2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatUGX } from '@/lib/currency';
 import { saveOfflineSale } from '@/lib/offlineDb';
@@ -31,7 +31,7 @@ const Sales = () => {
 
   const fetchData = async () => {
     if (!user) return;
-    let salesQ = supabase.from('sales').select('*, products(name), customers(name)').eq('user_id', user.id).order('sale_date', { ascending: false });
+    let salesQ = supabase.from('sales').select('*, products(name, cost_price, price), customers(name)').eq('user_id', user.id).order('sale_date', { ascending: false });
     let productsQ = supabase.from('products').select('*').eq('user_id', user.id).gt('stock_quantity', 0);
     let customersQ = supabase.from('customers').select('*').eq('user_id', user.id);
 
@@ -62,12 +62,16 @@ const Sales = () => {
     }
 
     const total = product.price * qty;
+    const profitPerItem = Number(product.price) - Number(product.cost_price || 0);
+    const saleProfit = profitPerItem * qty;
+
     const saleData: any = {
       user_id: user.id,
       product_id: form.product_id,
       quantity: qty,
       unit_price: product.price,
       total_amount: total,
+      sale_profit: saleProfit,
       payment_method: form.payment_method,
       customer_id: form.customer_id || null,
       notes: form.notes || null,
@@ -94,6 +98,15 @@ const Sales = () => {
   const selectedProduct = products.find(p => p.id === form.product_id);
   const calculatedTotal = selectedProduct ? selectedProduct.price * (parseInt(form.quantity) || 1) : 0;
 
+  const generateReceiptText = (sale: any) => {
+    return `🧾 *SmartBiz Receipt*\n📅 ${format(new Date(sale.sale_date), 'PPp')}\n\n📦 Product: ${sale.products?.name || 'N/A'}\n🔢 Qty: ${sale.quantity}\n💰 Unit Price: ${formatUGX(Number(sale.unit_price))}\n\n✅ *Total: ${formatUGX(Number(sale.total_amount))}*\n💳 Payment: ${sale.payment_method}\n${sale.customers?.name ? `👤 Customer: ${sale.customers.name}` : ''}\n\nThank you for your business! 🙏`;
+  };
+
+  const shareWhatsApp = (sale: any) => {
+    const text = generateReceiptText(sale);
+    window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank');
+  };
+
   const printReceipt = (sale: any) => {
     const w = window.open('', '_blank', 'width=400,height=600');
     if (!w) return;
@@ -109,9 +122,9 @@ const Sales = () => {
         <hr/>
         <div class="row"><span>Product:</span><span>${sale.products?.name || 'N/A'}</span></div>
         <div class="row"><span>Qty:</span><span>${sale.quantity}</span></div>
-        <div class="row"><span>Unit Price:</span><span>UGX ${Number(sale.unit_price).toLocaleString()}</span></div>
+        <div class="row"><span>Unit Price:</span><span>${formatUGX(Number(sale.unit_price))}</span></div>
         <hr/>
-        <div class="row total"><span>Total:</span><span>UGX ${Number(sale.total_amount).toLocaleString()}</span></div>
+        <div class="row total"><span>Total:</span><span>${formatUGX(Number(sale.total_amount))}</span></div>
         <div class="row"><span>Payment:</span><span>${sale.payment_method}</span></div>
         ${sale.customers?.name ? `<div class="row"><span>Customer:</span><span>${sale.customers.name}</span></div>` : ''}
         <hr/><p style="text-align:center;font-size:12px">Thank you for your business!</p>
@@ -213,9 +226,14 @@ const Sales = () => {
                     </TableCell>
                     <TableCell className="text-sm text-muted-foreground">{sale.customers?.name || '—'}</TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm" onClick={() => printReceipt(sale)}>
-                        <Printer className="h-4 w-4" />
-                      </Button>
+                      <div className="flex items-center gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => printReceipt(sale)} title="Print">
+                          <Printer className="h-4 w-4" />
+                        </Button>
+                        <Button variant="ghost" size="sm" onClick={() => shareWhatsApp(sale)} title="Share via WhatsApp">
+                          <Share2 className="h-4 w-4 text-green-600" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
