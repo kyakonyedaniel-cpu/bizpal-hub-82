@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingCart, Plus, Minus, Trash2, Receipt, Package } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Receipt, Package, Share2 } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
 import { format } from 'date-fns';
 import { saveOfflineSale } from '@/lib/offlineDb';
@@ -29,6 +29,7 @@ const POS = () => {
   const [customerId, setCustomerId] = useState('');
   const [processing, setProcessing] = useState(false);
   const [search, setSearch] = useState('');
+  const [lastSaleReceipt, setLastSaleReceipt] = useState<string | null>(null);
 
   const fetchData = async () => {
     if (!user) return;
@@ -77,16 +78,20 @@ const POS = () => {
     if (!user || cart.length === 0) return;
     setProcessing(true);
 
-    const inserts = cart.map(i => ({
-      user_id: user.id,
-      product_id: i.product.id,
-      quantity: i.quantity,
-      unit_price: i.product.price,
-      total_amount: i.product.price * i.quantity,
-      payment_method: paymentMethod,
-      customer_id: customerId || null,
-      branch_id: (!allBranchesMode && currentBranch) ? currentBranch.id : null,
-    }));
+    const inserts = cart.map(i => {
+      const profitPerItem = Number(i.product.price) - Number(i.product.cost_price || 0);
+      return {
+        user_id: user.id,
+        product_id: i.product.id,
+        quantity: i.quantity,
+        unit_price: i.product.price,
+        total_amount: i.product.price * i.quantity,
+        sale_profit: profitPerItem * i.quantity,
+        payment_method: paymentMethod,
+        customer_id: customerId || null,
+        branch_id: (!allBranchesMode && currentBranch) ? currentBranch.id : null,
+      };
+    });
 
     if (!navigator.onLine) {
       for (const sale of inserts) await saveOfflineSale(sale);
@@ -99,6 +104,11 @@ const POS = () => {
         return;
       }
     }
+
+    // Generate receipt text for WhatsApp sharing
+    const itemsList = cart.map(i => `📦 ${i.product.name} x${i.quantity} — ${formatUGX(i.product.price * i.quantity)}`).join('\n');
+    const receiptText = `🧾 *SmartBiz Receipt*\n📅 ${format(new Date(), 'PPp')}\n\n${itemsList}\n\n✅ *Total: ${formatUGX(cartTotal)}*\n💳 Payment: ${paymentMethod}\n\nThank you for your business! 🙏`;
+    setLastSaleReceipt(receiptText);
 
     // Print receipt
     const w = window.open('', '_blank', 'width=400,height=600');
@@ -131,6 +141,12 @@ const POS = () => {
     fetchData();
   };
 
+  const shareLastReceipt = () => {
+    if (lastSaleReceipt) {
+      window.open(`https://wa.me/?text=${encodeURIComponent(lastSaleReceipt)}`, '_blank');
+    }
+  };
+
   const filtered = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
     (p.category || '').toLowerCase().includes(search.toLowerCase())
@@ -142,6 +158,11 @@ const POS = () => {
         <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
           <ShoppingCart className="h-6 w-6" /> POS Mode
         </h1>
+        {lastSaleReceipt && (
+          <Button variant="outline" size="sm" onClick={shareLastReceipt}>
+            <Share2 className="h-4 w-4 mr-2 text-green-600" /> Share Last Receipt
+          </Button>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
