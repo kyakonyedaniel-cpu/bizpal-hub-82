@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         id: merchantRef,
         currency: currency || 'UGX',
-        amount: amount || 30000,
+        amount: amount || 2000,
         description: 'SmartBiz Premium Subscription - 1 Month',
         callback_url: callbackUrl,
         notification_id: ipnId,
@@ -115,7 +115,7 @@ Deno.serve(async (req) => {
 
     await adminClient.from('payments').insert({
       user_id: userId,
-      amount: amount || 30000,
+      amount: amount || 2000,
       currency: currency || 'UGX',
       payment_method: 'Pesapal',
       status: 'pending',
