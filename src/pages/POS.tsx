@@ -5,11 +5,15 @@ import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingCart, Plus, Minus, Trash2, Receipt, Package, Share2 } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Receipt, Package, Share2, ScanBarcode } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
 import { format } from 'date-fns';
 import { saveOfflineSale } from '@/lib/offlineDb';
+import BarcodeScanner from '@/components/BarcodeScanner';
 
 const PAYMENT_METHODS = ['Cash', 'MTN MoMo', 'Airtel Money', 'Bank'];
 
@@ -30,6 +34,10 @@ const POS = () => {
   const [processing, setProcessing] = useState(false);
   const [search, setSearch] = useState('');
   const [lastSaleReceipt, setLastSaleReceipt] = useState<string | null>(null);
+  const [scannerOpen, setScannerOpen] = useState(false);
+  const [newProductOpen, setNewProductOpen] = useState(false);
+  const [scannedBarcode, setScannedBarcode] = useState('');
+  const [newProductForm, setNewProductForm] = useState({ name: '', price: '', cost_price: '', stock_quantity: '' });
 
   const fetchData = async () => {
     if (!user) return;
@@ -74,6 +82,59 @@ const POS = () => {
 
   const cartTotal = cart.reduce((sum, i) => sum + i.product.price * i.quantity, 0);
 
+  const handleBarcodeDetected = async (barcode: string) => {
+    // Search for product by barcode
+    const found = products.find(p => (p as any).barcode === barcode);
+    if (found) {
+      addToCart(found);
+      toast({ title: `Added: ${found.name}` });
+    } else {
+      // Also search in DB for products not in current view (out of stock etc.)
+      const { data } = await (supabase
+        .from('products')
+        .select('*')
+        .eq('user_id', user!.id) as any)
+        .eq('barcode', barcode)
+        .single();
+      
+      if (data && (data as any).stock_quantity > 0) {
+        addToCart(data);
+        toast({ title: `Added: ${(data as any).name}` });
+      } else if (data) {
+        toast({ title: 'Product out of stock', description: (data as any).name, variant: 'destructive' });
+      } else {
+        setScannedBarcode(barcode);
+        setNewProductOpen(true);
+        toast({ title: 'Barcode not found', description: 'Create a new product for this barcode.' });
+      }
+    }
+  };
+
+  const handleCreateProduct = async () => {
+    if (!user || !newProductForm.name) return;
+    const payload = {
+      name: newProductForm.name,
+      price: parseFloat(newProductForm.price) || 0,
+      cost_price: parseFloat(newProductForm.cost_price) || 0,
+      stock_quantity: parseInt(newProductForm.stock_quantity) || 0,
+      barcode: scannedBarcode,
+      user_id: user.id,
+      branch_id: (!allBranchesMode && currentBranch) ? currentBranch.id : null,
+    } as any;
+
+    const { data, error } = await supabase.from('products').insert(payload).select().single();
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+      return;
+    }
+    toast({ title: 'Product created!' });
+    setNewProductOpen(false);
+    setNewProductForm({ name: '', price: '', cost_price: '', stock_quantity: '' });
+    setScannedBarcode('');
+    fetchData();
+    if (data && (data as any).stock_quantity > 0) addToCart(data);
+  };
+
   const checkout = async () => {
     if (!user || cart.length === 0) return;
     setProcessing(true);
@@ -105,12 +166,10 @@ const POS = () => {
       }
     }
 
-    // Generate receipt text for WhatsApp sharing
     const itemsList = cart.map(i => `📦 ${i.product.name} x${i.quantity} — ${formatUGX(i.product.price * i.quantity)}`).join('\n');
     const receiptText = `🧾 *SmartBiz Receipt*\n📅 ${format(new Date(), 'PPp')}\n\n${itemsList}\n\n✅ *Total: ${formatUGX(cartTotal)}*\n💳 Payment: ${paymentMethod}\n\nThank you for your business! 🙏`;
     setLastSaleReceipt(receiptText);
 
-    // Print receipt
     const w = window.open('', '_blank', 'width=400,height=600');
     if (w) {
       const itemsHtml = cart.map(i =>
@@ -149,27 +208,33 @@ const POS = () => {
 
   const filtered = products.filter(p =>
     p.name.toLowerCase().includes(search.toLowerCase()) ||
-    (p.category || '').toLowerCase().includes(search.toLowerCase())
+    (p.category || '').toLowerCase().includes(search.toLowerCase()) ||
+    ((p as any).barcode || '').toLowerCase().includes(search.toLowerCase())
   );
 
   return (
     <div className="space-y-4 animate-fade-in">
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
           <ShoppingCart className="h-6 w-6" /> POS Mode
         </h1>
-        {lastSaleReceipt && (
-          <Button variant="outline" size="sm" onClick={shareLastReceipt}>
-            <Share2 className="h-4 w-4 mr-2 text-green-600" /> Share Last Receipt
+        <div className="flex items-center gap-2">
+          <Button variant="outline" size="sm" onClick={() => setScannerOpen(true)}>
+            <ScanBarcode className="h-4 w-4 mr-2" /> Scan Barcode
           </Button>
-        )}
+          {lastSaleReceipt && (
+            <Button variant="outline" size="sm" onClick={shareLastReceipt}>
+              <Share2 className="h-4 w-4 mr-2 text-green-600" /> Share Last Receipt
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 space-y-3">
           <input
             type="text"
-            placeholder="Search products..."
+            placeholder="Search products or barcodes..."
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="w-full rounded-lg border border-input bg-background px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-ring"
@@ -263,6 +328,44 @@ const POS = () => {
           </CardContent>
         </Card>
       </div>
+
+      <BarcodeScanner
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onDetected={handleBarcodeDetected}
+      />
+
+      {/* New Product Dialog for unknown barcodes */}
+      <Dialog open={newProductOpen} onOpenChange={setNewProductOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle className="font-heading">New Product (Barcode: {scannedBarcode})</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Product Name *</Label>
+              <Input value={newProductForm.name} onChange={e => setNewProductForm({ ...newProductForm, name: e.target.value })} placeholder="Product name" />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Selling Price</Label>
+                <Input type="number" value={newProductForm.price} onChange={e => setNewProductForm({ ...newProductForm, price: e.target.value })} />
+              </div>
+              <div className="space-y-2">
+                <Label>Cost Price</Label>
+                <Input type="number" value={newProductForm.cost_price} onChange={e => setNewProductForm({ ...newProductForm, cost_price: e.target.value })} />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label>Stock Quantity</Label>
+              <Input type="number" value={newProductForm.stock_quantity} onChange={e => setNewProductForm({ ...newProductForm, stock_quantity: e.target.value })} />
+            </div>
+            <Button className="w-full" onClick={handleCreateProduct} disabled={!newProductForm.name}>
+              Create Product & Add to Cart
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

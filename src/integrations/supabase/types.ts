@@ -161,6 +161,7 @@ export type Database = {
       }
       products: {
         Row: {
+          barcode: string | null
           branch_id: string | null
           category: string | null
           cost_price: number | null
@@ -176,6 +177,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          barcode?: string | null
           branch_id?: string | null
           category?: string | null
           cost_price?: number | null
@@ -191,6 +193,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          barcode?: string | null
           branch_id?: string | null
           category?: string | null
           cost_price?: number | null
@@ -225,6 +228,8 @@ export type Database = {
           sales_count: number
           updated_at: string
           user_id: string
+          whatsapp_number: string | null
+          whatsapp_reports_enabled: boolean
         }
         Insert: {
           business_name?: string | null
@@ -235,6 +240,8 @@ export type Database = {
           sales_count?: number
           updated_at?: string
           user_id: string
+          whatsapp_number?: string | null
+          whatsapp_reports_enabled?: boolean
         }
         Update: {
           business_name?: string | null
@@ -245,6 +252,8 @@ export type Database = {
           sales_count?: number
           updated_at?: string
           user_id?: string
+          whatsapp_number?: string | null
+          whatsapp_reports_enabled?: boolean
         }
         Relationships: []
       }

@@ -9,8 +9,9 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, AlertTriangle, ImagePlus, Package } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertTriangle, ImagePlus, Package, ScanBarcode } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
+import BarcodeScanner from '@/components/BarcodeScanner';
 
 const Inventory = () => {
   const { user } = useAuth();
@@ -21,9 +22,10 @@ const Inventory = () => {
   const [editing, setEditing] = useState<any>(null);
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
+  const [scannerOpen, setScannerOpen] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
-    name: '', price: '', cost_price: '', stock_quantity: '', low_stock_threshold: '5', category: '', description: '', branch_id: '',
+    name: '', price: '', cost_price: '', stock_quantity: '', low_stock_threshold: '5', category: '', description: '', branch_id: '', barcode: '',
   });
 
   const fetchProducts = async () => {
@@ -37,7 +39,7 @@ const Inventory = () => {
   useEffect(() => { fetchProducts(); }, [user, currentBranch, allBranchesMode]);
 
   const resetForm = () => {
-    setForm({ name: '', price: '', cost_price: '', stock_quantity: '', low_stock_threshold: '5', category: '', description: '', branch_id: '' });
+    setForm({ name: '', price: '', cost_price: '', stock_quantity: '', low_stock_threshold: '5', category: '', description: '', branch_id: '', barcode: '' });
     setEditing(null);
     setImageFile(null);
   };
@@ -65,6 +67,7 @@ const Inventory = () => {
       low_stock_threshold: parseInt(form.low_stock_threshold) || 5,
       category: form.category || null,
       description: form.description || null,
+      barcode: form.barcode || null,
       user_id: user.id,
       branch_id: form.branch_id || ((!allBranchesMode && currentBranch) ? currentBranch.id : null),
     };
@@ -110,6 +113,7 @@ const Inventory = () => {
       category: product.category || '',
       description: product.description || '',
       branch_id: product.branch_id || '',
+      barcode: product.barcode || '',
     });
     setImageFile(null);
     setOpen(true);
@@ -123,6 +127,11 @@ const Inventory = () => {
       toast({ title: 'Product deleted' });
       fetchProducts();
     }
+  };
+
+  const handleBarcodeScan = (barcode: string) => {
+    setForm(prev => ({ ...prev, barcode }));
+    toast({ title: 'Barcode scanned', description: barcode });
   };
 
   return (
@@ -141,6 +150,15 @@ const Inventory = () => {
               <div className="space-y-2">
                 <Label>Name *</Label>
                 <Input value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} required />
+              </div>
+              <div className="space-y-2">
+                <Label>Barcode</Label>
+                <div className="flex gap-2">
+                  <Input value={form.barcode} onChange={e => setForm({ ...form, barcode: e.target.value })} placeholder="Scan or enter barcode" className="flex-1" />
+                  <Button type="button" variant="outline" size="icon" onClick={() => setScannerOpen(true)}>
+                    <ScanBarcode className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
               <div className="space-y-2">
                 <Label>Product Image</Label>
@@ -215,6 +233,7 @@ const Inventory = () => {
                 <TableRow>
                   <TableHead className="w-12"></TableHead>
                   <TableHead>Name</TableHead>
+                  <TableHead>Barcode</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Cost</TableHead>
@@ -224,7 +243,7 @@ const Inventory = () => {
               </TableHeader>
               <TableBody>
                 {products.length === 0 ? (
-                  <TableRow><TableCell colSpan={7} className="text-center text-muted-foreground">No products yet</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={8} className="text-center text-muted-foreground">No products yet</TableCell></TableRow>
                 ) : products.map(p => (
                   <TableRow key={p.id}>
                     <TableCell>
@@ -237,6 +256,7 @@ const Inventory = () => {
                       )}
                     </TableCell>
                     <TableCell className="font-medium">{p.name}</TableCell>
+                    <TableCell className="text-xs text-muted-foreground font-mono">{(p as any).barcode || '—'}</TableCell>
                     <TableCell className="text-sm text-muted-foreground">{p.category || '—'}</TableCell>
                     <TableCell className="font-heading">{formatUGX(Number(p.price))}</TableCell>
                     <TableCell className="text-sm">{formatUGX(Number(p.cost_price || 0))}</TableCell>
@@ -259,6 +279,12 @@ const Inventory = () => {
           </div>
         </CardContent>
       </Card>
+
+      <BarcodeScanner
+        open={scannerOpen}
+        onClose={() => setScannerOpen(false)}
+        onDetected={handleBarcodeScan}
+      />
     </div>
   );
 };
