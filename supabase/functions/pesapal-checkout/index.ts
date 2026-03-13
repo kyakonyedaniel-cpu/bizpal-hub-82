@@ -87,7 +87,7 @@ Deno.serve(async (req) => {
       body: JSON.stringify({
         id: merchantRef,
         currency: currency || 'UGX',
-        amount: amount || 30000,
+        amount: amount || 2000,
         description: 'SmartBiz Premium Subscription - 1 Month',
         callback_url: callbackUrl,
         notification_id: ipnId,
