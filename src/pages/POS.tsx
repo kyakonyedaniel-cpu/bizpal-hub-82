@@ -90,11 +90,11 @@ const POS = () => {
       toast({ title: `Added: ${found.name}` });
     } else {
       // Also search in DB for products not in current view (out of stock etc.)
-      const { data } = await supabase
+      const { data } = await (supabase
         .from('products')
         .select('*')
-        .eq('user_id', user!.id)
-        .eq('barcode' as any, barcode)
+        .eq('user_id', user!.id) as any)
+        .eq('barcode', barcode)
         .single();
       
       if (data && (data as any).stock_quantity > 0) {
