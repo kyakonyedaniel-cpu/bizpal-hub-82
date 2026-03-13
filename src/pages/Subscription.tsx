@@ -36,7 +36,7 @@ const Subscription = () => {
     setInitiating(true);
     try {
       const { data, error } = await supabase.functions.invoke('pesapal-checkout', {
-        body: { user_id: user.id, email: user.email, amount: 30000, currency: 'UGX' },
+        body: { user_id: user.id, email: user.email, amount: 2000, currency: 'UGX' },
       });
       if (error) throw error;
       if (data?.redirect_url) {
