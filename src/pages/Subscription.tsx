@@ -99,7 +99,7 @@ const Subscription = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-2xl font-heading font-bold">{formatUGX(30000)}<span className="text-sm text-muted-foreground font-normal">/month</span></p>
+            <p className="text-2xl font-heading font-bold">{formatUGX(2000)}<span className="text-sm text-muted-foreground font-normal">/month</span></p>
             <ul className="space-y-2">
               {premiumFeatures.map(f => (
                 <li key={f} className="flex items-center gap-2 text-sm">
