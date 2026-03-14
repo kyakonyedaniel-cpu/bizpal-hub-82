@@ -99,6 +99,8 @@ const Dashboard = () => {
 
       setReferralCode(profileRes.data?.referral_code || '');
       setReferralCount(referralsRes.data?.length || 0);
+      setIsPremium(profileRes.data?.plan === 'premium');
+      setSubscription(subRes.data?.[0] || null);
 
       setData({ totalSales, totalExpenses, todaySales: todaySalesTotal, todaySalesCount: todaySales.length, todayProfit, weeklyProfit, lowStockProducts, salesByMethod, topProfitableProducts });
       setLoading(false);
