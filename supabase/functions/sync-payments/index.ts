@@ -115,11 +115,11 @@ Deno.serve(async (req) => {
       callerUserId = user?.id || null;
     }
 
-    // Fetch all pending payments
+    // Fetch all pending AND failed payments
     const { data: pendingPayments, error: fetchErr } = await supabase
       .from('payments')
       .select('*')
-      .eq('status', 'pending');
+      .in('status', ['pending', 'failed']);
 
     if (fetchErr) throw fetchErr;
     if (!pendingPayments || pendingPayments.length === 0) {
