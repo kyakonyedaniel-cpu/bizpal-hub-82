@@ -62,10 +62,11 @@ Deno.serve(async (req) => {
     // Extract user_id from merchant reference: BIZPAL-{userId8chars}-{timestamp}
     const userId = merchantRef ? await getUserIdFromRef(supabase, merchantRef) : null;
 
-    if (statusData.payment_status_description === 'Completed' && userId) {
+    const pStatus = statusData.payment_status_description;
+    if (pStatus === 'Completed' && userId) {
       // Update payment status
       await supabase.from('payments')
-        .update({ status: 'verified', payment_method: statusData.payment_method || 'Pesapal' })
+        .update({ status: 'completed', payment_method: statusData.payment_method || 'Pesapal' })
         .eq('user_id', userId)
         .eq('status', 'pending')
         .order('created_at', { ascending: false })
@@ -150,7 +151,7 @@ Deno.serve(async (req) => {
       }
 
       console.log(`Premium activated for user ${userId}`);
-    } else if (statusData.payment_status_description === 'Failed' && userId) {
+    } else if (['Failed', 'Cancelled', 'Invalid'].includes(pStatus) && userId) {
       await supabase.from('payments')
         .update({ status: 'failed' })
         .eq('user_id', userId)
