@@ -150,7 +150,7 @@ Deno.serve(async (req) => {
       if (activeSub && activeSub.length > 0) {
         // Payment was completed via IPN, update status
         await supabase.from('payments')
-          .update({ status: 'verified' })
+          .update({ status: 'completed' })
           .eq('id', payment.id);
         completed++;
         continue;
