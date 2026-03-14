@@ -33,6 +33,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [referralCode, setReferralCode] = useState('');
   const [referralCount, setReferralCount] = useState(0);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     if (!user) return;
