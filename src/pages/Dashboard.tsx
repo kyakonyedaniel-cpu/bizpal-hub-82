@@ -59,10 +59,11 @@ const Dashboard = () => {
         profitQuery = profitQuery.eq('branch_id', currentBranch.id);
       }
 
-      const [salesRes, expensesRes, todaySalesRes, weeklySalesRes, lowStockRes, profitRes, profileRes, referralsRes] = await Promise.all([
+      const [salesRes, expensesRes, todaySalesRes, weeklySalesRes, lowStockRes, profitRes, profileRes, referralsRes, subRes] = await Promise.all([
         salesQuery, expensesQuery, todaySalesQuery, weeklySalesQuery, productsQuery, profitQuery,
-        supabase.from('profiles').select('referral_code').eq('user_id', user.id).single(),
+        supabase.from('profiles').select('referral_code, plan').eq('user_id', user.id).single(),
         supabase.from('referrals').select('id').eq('referrer_user_id', user.id).eq('reward_status', 'rewarded'),
+        supabase.from('subscriptions').select('*').eq('user_id', user.id).eq('status', 'active').eq('plan', 'premium').order('end_date', { ascending: false }).limit(1),
       ]);
 
       const sales = salesRes.data || [];
