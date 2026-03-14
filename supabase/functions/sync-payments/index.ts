@@ -115,11 +115,11 @@ Deno.serve(async (req) => {
       callerUserId = user?.id || null;
     }
 
-    // Fetch all pending payments
+    // Fetch all pending AND failed payments
     const { data: pendingPayments, error: fetchErr } = await supabase
       .from('payments')
       .select('*')
-      .eq('status', 'pending');
+      .in('status', ['pending', 'failed']);
 
     if (fetchErr) throw fetchErr;
     if (!pendingPayments || pendingPayments.length === 0) {
@@ -136,6 +136,14 @@ Deno.serve(async (req) => {
     let failed = 0;
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
 
+    // Try to get Pesapal token for live verification
+    let pesapalToken: string | null = null;
+    try {
+      pesapalToken = await getPesapalToken();
+    } catch (e) {
+      console.warn('Could not get Pesapal token, falling back to local checks:', e.message);
+    }
+
     for (const payment of pendingPayments) {
       // Check if user already has an active premium subscription created after payment
       const { data: activeSub } = await supabase
@@ -147,8 +155,7 @@ Deno.serve(async (req) => {
         .gte('created_at', payment.created_at)
         .limit(1);
 
-      if (activeSub && activeSub.length > 0) {
-        // Payment was completed via IPN, update status
+      if (activeSub && activeSub.length > 0 && payment.status !== 'failed') {
         await supabase.from('payments')
           .update({ status: 'completed' })
           .eq('id', payment.id);
@@ -156,34 +163,66 @@ Deno.serve(async (req) => {
         continue;
       }
 
-      // If payment is older than 1 hour and still pending, try to activate or mark failed
-      const paymentDate = new Date(payment.created_at);
-      if (paymentDate < oneHourAgo) {
-        // Check if user profile shows premium (IPN might have activated but payment wasn't updated)
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('plan')
-          .eq('user_id', payment.user_id)
-          .single();
+      // Try live Pesapal verification using order_tracking_id (payment id)
+      if (pesapalToken) {
+        try {
+          const statusRes = await fetch(
+            `${PESAPAL_BASE_URL}/api/Transactions/GetTransactionStatus?orderTrackingId=${payment.id}`,
+            { headers: { 'Authorization': `Bearer ${pesapalToken}`, 'Accept': 'application/json' } }
+          );
+          const statusData = await statusRes.json();
+          const pesapalStatus = (statusData.payment_status_description || '').toLowerCase();
 
-        if (profile?.plan === 'premium') {
-          await supabase.from('payments')
-            .update({ status: 'completed' })
-            .eq('id', payment.id);
-          completed++;
-        } else {
-          // Only mark as failed after 24 hours, not 1 hour
-          const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
-          if (paymentDate < twentyFourHoursAgo) {
+          if (pesapalStatus === 'completed') {
+            // Prevent duplicate activation
+            if (!activeSub || activeSub.length === 0) {
+              await activatePremium(supabase, payment.user_id);
+            }
+            await supabase.from('payments')
+              .update({ status: 'completed' })
+              .eq('id', payment.id);
+            completed++;
+            continue;
+          } else if (['failed', 'cancelled', 'invalid'].includes(pesapalStatus)) {
             await supabase.from('payments')
               .update({ status: 'failed' })
               .eq('id', payment.id);
             failed++;
+            continue;
           }
-          // Otherwise leave as pending
+          // Still pending/processing at Pesapal — fall through to time-based logic
+        } catch (e) {
+          console.warn(`Pesapal status check failed for payment ${payment.id}:`, e.message);
         }
       }
-      // Recent payments (<1hr) stay pending - IPN may still come
+
+      // Fallback: time-based logic for pending payments only
+      if (payment.status === 'pending') {
+        const paymentDate = new Date(payment.created_at);
+        if (paymentDate < oneHourAgo) {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('plan')
+            .eq('user_id', payment.user_id)
+            .single();
+
+          if (profile?.plan === 'premium') {
+            await supabase.from('payments')
+              .update({ status: 'completed' })
+              .eq('id', payment.id);
+            completed++;
+          } else {
+            const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+            if (paymentDate < twentyFourHoursAgo) {
+              await supabase.from('payments')
+                .update({ status: 'failed' })
+                .eq('id', payment.id);
+              failed++;
+            }
+          }
+        }
+      }
+      // Failed payments without Pesapal confirmation stay as-is
     }
 
     console.log(`Payment sync: ${completed} completed, ${failed} failed, ${pendingPayments.length - completed - failed} still pending`);
