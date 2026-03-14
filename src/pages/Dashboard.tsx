@@ -151,6 +151,21 @@ const Dashboard = () => {
         )}
       </div>
 
+      {/* Premium Status Banner */}
+      {isPremium && subscription?.end_date && (
+        <Card className="glass-card border-accent/30">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+              <TrendingUp className="h-5 w-5 text-accent" />
+            </div>
+            <div>
+              <p className="font-heading font-semibold text-accent">Premium Plan Active</p>
+              <p className="text-sm text-muted-foreground">Expires on: <span className="font-bold text-foreground">{new Date(subscription.end_date).toLocaleDateString()}</span></p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {statCards.map(({ title, value, icon: Icon, color, subtitle }) => (
           <Card key={title} className="glass-card">
