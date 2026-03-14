@@ -1,1 +1,4 @@
 project_id = "wfdrouqbmyifzrkdnyom"
+
+[functions.sync-payments]
+verify_jwt = false

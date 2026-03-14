@@ -33,6 +33,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [referralCode, setReferralCode] = useState('');
   const [referralCount, setReferralCount] = useState(0);
+  const [subscription, setSubscription] = useState<any>(null);
+  const [isPremium, setIsPremium] = useState(false);
 
   useEffect(() => {
     if (!user) return;
@@ -57,10 +59,11 @@ const Dashboard = () => {
         profitQuery = profitQuery.eq('branch_id', currentBranch.id);
       }
 
-      const [salesRes, expensesRes, todaySalesRes, weeklySalesRes, lowStockRes, profitRes, profileRes, referralsRes] = await Promise.all([
+      const [salesRes, expensesRes, todaySalesRes, weeklySalesRes, lowStockRes, profitRes, profileRes, referralsRes, subRes] = await Promise.all([
         salesQuery, expensesQuery, todaySalesQuery, weeklySalesQuery, productsQuery, profitQuery,
-        supabase.from('profiles').select('referral_code').eq('user_id', user.id).single(),
+        supabase.from('profiles').select('referral_code, plan').eq('user_id', user.id).single(),
         supabase.from('referrals').select('id').eq('referrer_user_id', user.id).eq('reward_status', 'rewarded'),
+        supabase.from('subscriptions').select('*').eq('user_id', user.id).eq('status', 'active').eq('plan', 'premium').order('end_date', { ascending: false }).limit(1),
       ]);
 
       const sales = salesRes.data || [];
@@ -96,6 +99,8 @@ const Dashboard = () => {
 
       setReferralCode(profileRes.data?.referral_code || '');
       setReferralCount(referralsRes.data?.length || 0);
+      setIsPremium(profileRes.data?.plan === 'premium');
+      setSubscription(subRes.data?.[0] || null);
 
       setData({ totalSales, totalExpenses, todaySales: todaySalesTotal, todaySalesCount: todaySales.length, todayProfit, weeklyProfit, lowStockProducts, salesByMethod, topProfitableProducts });
       setLoading(false);
@@ -145,6 +150,21 @@ const Dashboard = () => {
           </span>
         )}
       </div>
+
+      {/* Premium Status Banner */}
+      {isPremium && subscription?.end_date && (
+        <Card className="glass-card border-accent/30">
+          <CardContent className="p-4 flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-accent/10 flex items-center justify-center shrink-0">
+              <TrendingUp className="h-5 w-5 text-accent" />
+            </div>
+            <div>
+              <p className="font-heading font-semibold text-accent">Premium Plan Active</p>
+              <p className="text-sm text-muted-foreground">Expires on: <span className="font-bold text-foreground">{new Date(subscription.end_date).toLocaleDateString()}</span></p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {statCards.map(({ title, value, icon: Icon, color, subtitle }) => (
