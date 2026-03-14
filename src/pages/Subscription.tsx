@@ -116,6 +116,7 @@ const Subscription = () => {
 
   const getStatusVariant = (status: string) => {
     switch (status) {
+      case 'completed': return 'default';
       case 'verified': return 'default';
       case 'pending': return 'secondary';
       case 'failed': return 'destructive';

@@ -168,14 +168,19 @@ Deno.serve(async (req) => {
 
         if (profile?.plan === 'premium') {
           await supabase.from('payments')
-            .update({ status: 'verified' })
+            .update({ status: 'completed' })
             .eq('id', payment.id);
           completed++;
         } else {
-          await supabase.from('payments')
-            .update({ status: 'failed' })
-            .eq('id', payment.id);
-          failed++;
+          // Only mark as failed after 24 hours, not 1 hour
+          const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+          if (paymentDate < twentyFourHoursAgo) {
+            await supabase.from('payments')
+              .update({ status: 'failed' })
+              .eq('id', payment.id);
+            failed++;
+          }
+          // Otherwise leave as pending
         }
       }
       // Recent payments (<1hr) stay pending - IPN may still come

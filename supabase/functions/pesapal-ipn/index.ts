@@ -151,7 +151,7 @@ Deno.serve(async (req) => {
       }
 
       console.log(`Premium activated for user ${userId}`);
-    } else if (statusData.payment_status_description === 'Failed' && userId) {
+    } else if (['Failed', 'Cancelled', 'Invalid'].includes(pStatus) && userId) {
       await supabase.from('payments')
         .update({ status: 'failed' })
         .eq('user_id', userId)
