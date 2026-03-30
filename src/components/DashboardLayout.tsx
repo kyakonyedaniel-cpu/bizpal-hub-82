@@ -5,7 +5,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import {
   LayoutDashboard, ShoppingCart, Package, Receipt,
   Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun, Monitor,
-  Building2, UserCog, CreditCard
+  Building2, UserCog, CreditCard, Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -20,6 +20,7 @@ const navItems = [
   { href: '/expenses', icon: Receipt, label: 'Expenses' },
   { href: '/customers', icon: Users, label: 'Customers' },
   { href: '/reports', icon: BarChart3, label: 'Reports' },
+  { href: '/ai-insights', icon: Brain, label: 'AI Insights' },
   { href: '/branches', icon: Building2, label: 'Branches' },
   { href: '/staff', icon: UserCog, label: 'Staff' },
   { href: '/subscription', icon: CreditCard, label: 'Subscription' },
