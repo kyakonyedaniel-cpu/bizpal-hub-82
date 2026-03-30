@@ -20,6 +20,7 @@ import POS from "./pages/POS";
 import Branches from "./pages/Branches";
 import StaffManagement from "./pages/StaffManagement";
 import Subscription from "./pages/Subscription";
+import AIInsights from "./pages/AIInsights";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -53,6 +54,7 @@ const App = () => (
                 <Route path="/branches" element={<ProtectedRoute><Branches /></ProtectedRoute>} />
                 <Route path="/staff" element={<ProtectedRoute><StaffManagement /></ProtectedRoute>} />
                 <Route path="/subscription" element={<ProtectedRoute><Subscription /></ProtectedRoute>} />
+                <Route path="/ai-insights" element={<ProtectedRoute><AIInsights /></ProtectedRoute>} />
                 <Route path="/settings" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
                 <Route path="*" element={<NotFound />} />
               </Routes>
