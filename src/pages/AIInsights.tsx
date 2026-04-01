@@ -222,7 +222,7 @@ const AIInsights = () => {
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-heading font-bold ${metrics.growthRate >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {metrics.growthRate >= 0 ? '+' : ''{metrics.growthRate.toFixed(1)}%
+              {metrics.growthRate >= 0 ? '+' : ''}{metrics.growthRate.toFixed(1)}%
             </div>
             <p className="text-xs text-muted-foreground mt-1">vs last month</p>
           </CardContent>
