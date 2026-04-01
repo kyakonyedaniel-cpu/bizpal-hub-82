@@ -48,9 +48,9 @@ const AIInsights = () => {
       const lastMonthStart = format(startOfMonth(subDays(new Date(), 30)), 'yyyy-MM-dd');
 
       let salesQuery = supabase.from('sales').select('total_amount, sale_profit, sale_date, payment_method').eq('user_id', user.id);
-      let productsQuery = supabase.from('products').select('name, stock_quantity, cost_price', 'selling_price', 'category').eq('user_id', user.id);
-      let customersQuery = supabase.from('customers').select('id', 'total_purchases', 'last_purchase_date').eq('user_id', user.id);
-      let expensesQuery = supabase.from('expenses').select('amount', 'category').eq('user_id', user.id);
+      let productsQuery = supabase.from('products').select('name, stock_quantity, cost_price, category').eq('user_id', user.id);
+      let customersQuery = supabase.from('customers').select('id, created_at').eq('user_id', user.id);
+      let expensesQuery = supabase.from('expenses').select('amount, category').eq('user_id', user.id);
 
       if (!allBranchesMode && currentBranch) {
         salesQuery = salesQuery.eq('branch_id', currentBranch.id);
