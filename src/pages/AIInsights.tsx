@@ -78,7 +78,7 @@ const AIInsights = () => {
       const revenueProjection = thisMonthTotal * 12;
 
       const categorySales: Record<string, number> = {};
-      sales.forEach((s => {
+      sales.forEach(s => {
         const cat = s.payment_method || 'Other';
         categorySales[cat] = (categorySales[cat] || 0) + Number(s.total_amount);
       });
