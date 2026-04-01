@@ -68,14 +68,14 @@ const AIInsights = () => {
       const customers = customersRes.data || [];
       const expenses = expensesRes.data || [];
 
-      const thisMonthSales = sales.filter((s => s.sale_date >= monthStart);
-      const lastMonthSales = sales.filter((s => s.sale_date >= lastMonthStart && s.sale_date < monthStart);
+      const thisMonthSales = sales.filter(s => s.sale_date >= monthStart);
+      const lastMonthSales = sales.filter(s => s.sale_date >= lastMonthStart && s.sale_date < monthStart);
       
-      const thisMonthTotal = thisMonthSales.reduce((sum: number, s => sum + Number(s.total_amount), 0);
-      const lastMonthTotal = lastMonthSales.reduce((sum: number, s => sum + Number(s.total_amount), 0);
+      const thisMonthTotal = thisMonthSales.reduce((sum: number, s) => sum + Number(s.total_amount), 0);
+      const lastMonthTotal = lastMonthSales.reduce((sum: number, s) => sum + Number(s.total_amount), 0);
       
-      const growthRate = lastMonthTotal > 0 ? (hthisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : 0;
-      const revenueProjection = thisMonthTotal * 12
+      const growthRate = lastMonthTotal > 0 ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : 0;
+      const revenueProjection = thisMonthTotal * 12;
 
       const categorySales: Record<string, number> = {};
       sales.forEach((s => {
