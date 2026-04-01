@@ -185,7 +185,7 @@ const AIInsights = () => {
 
   if (loading) {
     return (
-      <div className="space-y6 animate-pulse">
+      <div className="space-y-6 animate-pulse">
         <div className="h-8 w-48 bg-muted rounded" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1,2,3].map(i => <div key={i} className="h-32 bg-muted rounded-lg" />)}
