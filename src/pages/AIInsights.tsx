@@ -90,8 +90,8 @@ const AIInsights = () => {
       });
       const customerRetention = customers.length > 0 ? (activeCustomers.length / customers.length) * 100 : 0;
 
-      const totalStockValue = products.reduce((sum: number, p => sum + (Number(p.stock_quantity) * Number(p.cost_price || 0)), 0);
-      const totalSalesValue = sales.reduce((sum: number, s => sum + Number(s.total_amount), 0);
+      const totalStockValue = products.reduce((sum: number, p) => sum + (Number(p.stock_quantity) * Number(p.cost_price || 0)), 0);
+      const totalSalesValue = sales.reduce((sum: number, s) => sum + Number(s.total_amount), 0);
       const inventoryTurnover = totalStockValue > 0 ? totalSalesValue / totalStockValue : 0;
 
       setMetrics({ growthRate, revenueProjection, topCategory, customerRetention, inventoryTurnover });
