@@ -216,7 +216,7 @@ const AIInsights = () => {
         <Card className="glass-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 t-4" />
+              <TrendingUp className="h-4 w-4" />
               Growth Rate
             </CardTitle>
           </CardHeader>
