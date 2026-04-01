@@ -195,7 +195,7 @@ const AIInsights = () => {
   }
 
   return (
-    <div className="space-y6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
