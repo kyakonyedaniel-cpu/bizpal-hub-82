@@ -257,7 +257,7 @@ const AIInsights = () => {
         <Card className="glass-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Package className="h-4 t-4" />
+              <Package className="h-4 w-4" />
               Inventory Turnover
             </CardTitle>
           </CardHeader>
