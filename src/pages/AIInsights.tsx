@@ -84,8 +84,8 @@ const AIInsights = () => {
       });
       const topCategory = Object.entries(categorySales).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
 
-      const activeCustomers = customers.filter((c => {
-        const lastPurchase = c.last_purchase_date ? new Date(c.last_purchase_date) : null;
+      const activeCustomers = customers.filter(c => {
+        const lastPurchase = c.created_at ? new Date(c.created_at) : null;
         return lastPurchase && (new Date().getTime() - lastPurchase.getTime()) / (1000 * 60 * 60 * 24) <= 30;
       });
       const customerRetention = customers.length > 0 ? (activeCustomers.length / customers.length) * 100 : 0;
