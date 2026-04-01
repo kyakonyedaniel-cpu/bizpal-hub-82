@@ -48,9 +48,9 @@ const AIInsights = () => {
       const lastMonthStart = format(startOfMonth(subDays(new Date(), 30)), 'yyyy-MM-dd');
 
       let salesQuery = supabase.from('sales').select('total_amount, sale_profit, sale_date, payment_method').eq('user_id', user.id);
-      let productsQuery = supabase.from('products').select('name, stock_quantity, cost_price', 'selling_price', 'category').eq('user_id', user.id);
-      let customersQuery = supabase.from('customers').select('id', 'total_purchases', 'last_purchase_date').eq('user_id', user.id);
-      let expensesQuery = supabase.from('expenses').select('amount', 'category').eq('user_id', user.id);
+      let productsQuery = supabase.from('products').select('name, stock_quantity, cost_price, category').eq('user_id', user.id);
+      let customersQuery = supabase.from('customers').select('id, created_at').eq('user_id', user.id);
+      let expensesQuery = supabase.from('expenses').select('amount, category').eq('user_id', user.id);
 
       if (!allBranchesMode && currentBranch) {
         salesQuery = salesQuery.eq('branch_id', currentBranch.id);
@@ -68,30 +68,30 @@ const AIInsights = () => {
       const customers = customersRes.data || [];
       const expenses = expensesRes.data || [];
 
-      const thisMonthSales = sales.filter((s => s.sale_date >= monthStart);
-      const lastMonthSales = sales.filter((s => s.sale_date >= lastMonthStart && s.sale_date < monthStart);
+      const thisMonthSales = sales.filter(s => s.sale_date >= monthStart);
+      const lastMonthSales = sales.filter(s => s.sale_date >= lastMonthStart && s.sale_date < monthStart);
       
-      const thisMonthTotal = thisMonthSales.reduce((sum: number, s => sum + Number(s.total_amount), 0);
-      const lastMonthTotal = lastMonthSales.reduce((sum: number, s => sum + Number(s.total_amount), 0);
+      const thisMonthTotal = thisMonthSales.reduce((sum: number, s) => sum + Number(s.total_amount), 0);
+      const lastMonthTotal = lastMonthSales.reduce((sum: number, s) => sum + Number(s.total_amount), 0);
       
-      const growthRate = lastMonthTotal > 0 ? (hthisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : 0;
-      const revenueProjection = thisMonthTotal * 12
+      const growthRate = lastMonthTotal > 0 ? ((thisMonthTotal - lastMonthTotal) / lastMonthTotal) * 100 : 0;
+      const revenueProjection = thisMonthTotal * 12;
 
       const categorySales: Record<string, number> = {};
-      sales.forEach((s => {
+      sales.forEach(s => {
         const cat = s.payment_method || 'Other';
         categorySales[cat] = (categorySales[cat] || 0) + Number(s.total_amount);
       });
       const topCategory = Object.entries(categorySales).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
 
-      const activeCustomers = customers.filter((c => {
-        const lastPurchase = c.last_purchase_date ? new Date(c.last_purchase_date) : null;
+      const activeCustomers = customers.filter(c => {
+        const lastPurchase = c.created_at ? new Date(c.created_at) : null;
         return lastPurchase && (new Date().getTime() - lastPurchase.getTime()) / (1000 * 60 * 60 * 24) <= 30;
       });
       const customerRetention = customers.length > 0 ? (activeCustomers.length / customers.length) * 100 : 0;
 
-      const totalStockValue = products.reduce((sum: number, p => sum + (Number(p.stock_quantity) * Number(p.cost_price || 0)), 0);
-      const totalSalesValue = sales.reduce((sum: number, s => sum + Number(s.total_amount), 0);
+      const totalStockValue = products.reduce((sum: number, p) => sum + (Number(p.stock_quantity) * Number(p.cost_price || 0)), 0);
+      const totalSalesValue = sales.reduce((sum: number, s) => sum + Number(s.total_amount), 0);
       const inventoryTurnover = totalStockValue > 0 ? totalSalesValue / totalStockValue : 0;
 
       setMetrics({ growthRate, revenueProjection, topCategory, customerRetention, inventoryTurnover });
@@ -185,7 +185,7 @@ const AIInsights = () => {
 
   if (loading) {
     return (
-      <div className="space-y6 animate-pulse">
+      <div className="space-y-6 animate-pulse">
         <div className="h-8 w-48 bg-muted rounded" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {[1,2,3].map(i => <div key={i} className="h-32 bg-muted rounded-lg" />)}
@@ -195,7 +195,7 @@ const AIInsights = () => {
   }
 
   return (
-    <div className="space-y6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -216,13 +216,13 @@ const AIInsights = () => {
         <Card className="glass-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <TrendingUp className="h-4 t-4" />
+              <TrendingUp className="h-4 w-4" />
               Growth Rate
             </CardTitle>
           </CardHeader>
           <CardContent>
             <div className={`text-2xl font-heading font-bold ${metrics.growthRate >= 0 ? 'text-green-500' : 'text-red-500'}`}>
-              {metrics.growthRate >= 0 ? '+' : ''{metrics.growthRate.toFixed(1)}%
+              {metrics.growthRate >= 0 ? '+' : ''}{metrics.growthRate.toFixed(1)}%
             </div>
             <p className="text-xs text-muted-foreground mt-1">vs last month</p>
           </CardContent>
@@ -257,7 +257,7 @@ const AIInsights = () => {
         <Card className="glass-card">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-              <Package className="h-4 t-4" />
+              <Package className="h-4 w-4" />
               Inventory Turnover
             </CardTitle>
           </CardHeader>
