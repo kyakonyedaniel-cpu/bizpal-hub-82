@@ -47,7 +47,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
     navigate('/');
   };
 
-  const currentPage = navItems.find(item => item.href === location.pathname)?.label || 'Dashboard';
+  const currentPage = allNavItems.find(item => item.href === location.pathname)?.label || 'Dashboard';
 
   return (
     <div className="min-h-screen flex bg-background">
