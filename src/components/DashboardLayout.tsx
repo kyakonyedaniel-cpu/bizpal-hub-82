@@ -5,7 +5,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import {
   LayoutDashboard, ShoppingCart, Package, Receipt,
   Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun, Monitor,
-  Building2, UserCog, CreditCard, Brain
+  Building2, UserCog, CreditCard, Brain, ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -27,19 +27,26 @@ const navItems = [
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
+const ADMIN_EMAIL = 'kyakonyedaniel@gmail.com';
+
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isAdmin = user?.email === ADMIN_EMAIL;
+
+  const allNavItems = isAdmin
+    ? [...navItems, { href: '/admin/payments', icon: ShieldCheck, label: 'Admin Panel' }]
+    : navItems;
 
   const handleSignOut = async () => {
     await signOut();
     navigate('/');
   };
 
-  const currentPage = navItems.find(item => item.href === location.pathname)?.label || 'Dashboard';
+  const currentPage = allNavItems.find(item => item.href === location.pathname)?.label || 'Dashboard';
 
   return (
     <div className="min-h-screen flex bg-background">
@@ -62,7 +69,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
           </div>
 
           <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-            {navItems.map(({ href, icon: Icon, label }) => {
+            {allNavItems.map(({ href, icon: Icon, label }) => {
               const active = location.pathname === href;
               return (
                 <Link
