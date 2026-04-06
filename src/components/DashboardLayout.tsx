@@ -5,7 +5,7 @@ import { useTheme } from '@/components/ThemeProvider';
 import {
   LayoutDashboard, ShoppingCart, Package, Receipt,
   Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun, Monitor,
-  Building2, UserCog, CreditCard, Brain
+  Building2, UserCog, CreditCard, Brain, ShieldCheck
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
