@@ -33,7 +33,11 @@ const AdminPayments = () => {
     setLoading(false);
   };
 
-  useEffect(() => { fetchPayments(); }, []);
+  useEffect(() => { if (isAdmin) fetchPayments(); }, [isAdmin]);
+
+  if (!isAdmin) {
+    return <Navigate to="/dashboard" replace />;
+  }
 
   const handleAction = async (paymentId: string, userId: string, action: 'approve' | 'reject') => {
     setProcessing(paymentId);
