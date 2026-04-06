@@ -17,11 +17,7 @@ const AdminPayments = () => {
   const [payments, setPayments] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState<string | null>(null);
-
-  // Only allow the admin email
-  if (user && user.email !== ADMIN_EMAIL) {
-    return <Navigate to="/dashboard" replace />;
-  }
+  const isAdmin = user?.email === ADMIN_EMAIL;
 
   const fetchPayments = async () => {
     setLoading(true);
