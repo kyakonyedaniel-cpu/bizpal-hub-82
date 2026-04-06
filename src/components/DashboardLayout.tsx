@@ -70,7 +70,7 @@ const DashboardLayout = ({ children }: { children: ReactNode }) => {
           </div>
 
           <nav className="flex-1 px-4 space-y-1 overflow-y-auto">
-            {navItems.map(({ href, icon: Icon, label }) => {
+            {allNavItems.map(({ href, icon: Icon, label }) => {
               const active = location.pathname === href;
               return (
                 <Link
