@@ -28,12 +28,19 @@ const navItems = [
   { href: '/settings', icon: Settings, label: 'Settings' },
 ];
 
+const ADMIN_EMAIL = 'kyakonyedaniel@gmail.com';
+
 const DashboardLayout = ({ children }: { children: ReactNode }) => {
-  const { signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const location = useLocation();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isAdmin = user?.email === ADMIN_EMAIL;
+
+  const allNavItems = isAdmin
+    ? [...navItems, { href: '/admin/payments', icon: ShieldCheck, label: 'Admin Panel' }]
+    : navItems;
 
   const handleSignOut = async () => {
     await signOut();
