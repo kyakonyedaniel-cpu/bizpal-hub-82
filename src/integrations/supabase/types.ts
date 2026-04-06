@@ -131,29 +131,41 @@ export type Database = {
       }
       payments: {
         Row: {
+          admin_notes: string | null
           amount: number
+          approved_by: string | null
           created_at: string
           currency: string
           id: string
+          network: string | null
           payment_method: string
+          phone_number: string | null
           status: string
           user_id: string
         }
         Insert: {
+          admin_notes?: string | null
           amount: number
+          approved_by?: string | null
           created_at?: string
           currency?: string
           id?: string
+          network?: string | null
           payment_method: string
+          phone_number?: string | null
           status?: string
           user_id: string
         }
         Update: {
+          admin_notes?: string | null
           amount?: number
+          approved_by?: string | null
           created_at?: string
           currency?: string
           id?: string
+          network?: string | null
           payment_method?: string
+          phone_number?: string | null
           status?: string
           user_id?: string
         }
