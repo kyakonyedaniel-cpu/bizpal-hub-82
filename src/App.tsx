@@ -21,6 +21,7 @@ import Branches from "./pages/Branches";
 import StaffManagement from "./pages/StaffManagement";
 import Subscription from "./pages/Subscription";
 import AIInsights from "./pages/AIInsights";
+import AdminPayments from "./pages/AdminPayments";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
