@@ -2,7 +2,6 @@ import { ReactNode, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { useTheme } from '@/components/ThemeProvider';
-import { useTheme } from '@/components/ThemeProvider';
 import {
   LayoutDashboard, ShoppingCart, Package, Receipt,
   Users, BarChart3, LogOut, Menu, X, ChevronRight, Settings, Moon, Sun, Monitor,
