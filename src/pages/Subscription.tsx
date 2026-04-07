@@ -43,7 +43,7 @@ const Subscription = () => {
     try {
       const { error } = await supabase.from('payments').insert({
         user_id: user.id,
-        amount: 2000,
+        amount: 30000,
         currency: 'UGX',
         payment_method: `Mobile Money (${selectedNetwork})`,
         status: 'pending',
@@ -122,7 +122,7 @@ const Subscription = () => {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <p className="text-2xl font-heading font-bold">{formatUGX(2000)}<span className="text-sm text-muted-foreground font-normal">/month</span></p>
+            <p className="text-2xl font-heading font-bold">{formatUGX(30000)}<span className="text-sm text-muted-foreground font-normal">/month</span></p>
             <ul className="space-y-2">
               {premiumFeatures.map(f => (
                 <li key={f} className="flex items-center gap-2 text-sm"><Check className="h-4 w-4 text-accent" /> {f}</li>
@@ -142,7 +142,7 @@ const Subscription = () => {
           </CardHeader>
           <CardContent className="space-y-5">
             <div className="rounded-lg bg-muted/50 p-4 space-y-3">
-              <p className="text-sm font-medium">Send {formatUGX(2000)} to:</p>
+              <p className="text-sm font-medium">Send {formatUGX(30000)} to:</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <button
                   onClick={() => setSelectedNetwork('MTN')}
