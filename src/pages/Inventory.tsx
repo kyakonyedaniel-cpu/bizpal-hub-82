@@ -120,6 +120,20 @@ const Inventory = () => {
   };
 
   const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this product?')) return;
+    
+    // Check if product has linked sales
+    const { count } = await supabase.from('sales').select('id', { count: 'exact', head: true }).eq('product_id', id);
+    
+    if (count && count > 0) {
+      toast({ 
+        title: 'Cannot delete', 
+        description: `This product has ${count} sale(s) linked to it. Remove the sales first or consider setting stock to 0 instead.`, 
+        variant: 'destructive' 
+      });
+      return;
+    }
+    
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
