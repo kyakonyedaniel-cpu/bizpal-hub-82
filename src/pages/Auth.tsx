@@ -64,7 +64,8 @@ const Auth = () => {
             }
           }
         }
-        toast({ title: 'Account created!', description: 'Check your email to confirm your account.' });
+        toast({ title: 'Account created!', description: 'Welcome to SmartBiz Manager!' });
+        navigate('/dashboard');
       }
     } catch (error: any) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
