@@ -120,25 +120,30 @@ const Inventory = () => {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this product?')) return;
-    
     // Check if product has linked sales
     const { count } = await supabase.from('sales').select('id', { count: 'exact', head: true }).eq('product_id', id);
     
-    if (count && count > 0) {
-      toast({ 
-        title: 'Cannot delete', 
-        description: `This product has ${count} sale(s) linked to it. Remove the sales first or consider setting stock to 0 instead.`, 
-        variant: 'destructive' 
-      });
-      return;
+    const hasLinkedSales = count && count > 0;
+    const message = hasLinkedSales
+      ? `This product has ${count} sale(s) linked to it. Deleting will also remove those sales records. Continue?`
+      : 'Are you sure you want to delete this product?';
+    
+    if (!confirm(message)) return;
+
+    // Delete linked sales first if any
+    if (hasLinkedSales) {
+      const { error: salesError } = await supabase.from('sales').delete().eq('product_id', id);
+      if (salesError) {
+        toast({ title: 'Error removing linked sales', description: salesError.message, variant: 'destructive' });
+        return;
+      }
     }
     
     const { error } = await supabase.from('products').delete().eq('id', id);
     if (error) {
       toast({ title: 'Error', description: error.message, variant: 'destructive' });
     } else {
-      toast({ title: 'Product deleted' });
+      toast({ title: 'Product deleted', description: hasLinkedSales ? `Also removed ${count} linked sale(s).` : undefined });
       fetchProducts();
     }
   };
