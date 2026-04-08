@@ -40,7 +40,8 @@ const POS = () => {
   const [newProductOpen, setNewProductOpen] = useState(false);
   const [scannedBarcode, setScannedBarcode] = useState('');
   const [newProductForm, setNewProductForm] = useState({ name: '', price: '', cost_price: '', stock_quantity: '' });
-
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const planLimits = usePlanLimits();
   const fetchData = async () => {
     if (!user) return;
     let pQuery = supabase.from('products').select('*').eq('user_id', user.id).gt('stock_quantity', 0).order('name');
