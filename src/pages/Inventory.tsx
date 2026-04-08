@@ -26,6 +26,7 @@ const Inventory = () => {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [form, setForm] = useState({
     name: '', price: '', cost_price: '', stock_quantity: '', low_stock_threshold: '5', category: '', description: '', branch_id: '', barcode: '',
+  });
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const planLimits = usePlanLimits();
 
