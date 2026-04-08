@@ -70,7 +70,14 @@ const Branches = () => {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl">
-      <div className="flex items-center justify-between">
+      <UpgradeModal
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        feature="Free plan allows only 1 branch. Upgrade to Premium for unlimited branches."
+        currentUsage={String(planLimits.branchCount)}
+        limit={String(planLimits.maxBranches)}
+      />
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
           <Building2 className="h-6 w-6" /> Branches
         </h1>
