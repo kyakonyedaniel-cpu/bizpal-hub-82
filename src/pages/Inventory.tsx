@@ -9,9 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, AlertTriangle, ImagePlus, Package, ScanBarcode } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertTriangle, ImagePlus, Package, ScanBarcode, Lock } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
 import BarcodeScanner from '@/components/BarcodeScanner';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+import UpgradeModal from '@/components/UpgradeModal';
 
 const Inventory = () => {
   const { user } = useAuth();
