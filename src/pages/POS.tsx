@@ -224,10 +224,24 @@ const POS = () => {
 
   return (
     <div className="space-y-4 animate-fade-in">
+      <UpgradeModal
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        feature="Free plan limits reached. Upgrade to Premium for unlimited sales and products."
+        currentUsage={String(planLimits.salesCount)}
+        limit={String(planLimits.maxSales)}
+      />
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
-          <ShoppingCart className="h-6 w-6" /> POS Mode
-        </h1>
+        <div>
+          <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
+            <ShoppingCart className="h-6 w-6" /> POS Mode
+          </h1>
+          {!planLimits.isPremium && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <Lock className="h-3 w-3" /> Sales: {planLimits.salesCount}/{planLimits.maxSales} · Products: {planLimits.productCount}/{planLimits.maxProducts}
+            </p>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setScannerOpen(true)}>
             <ScanBarcode className="h-4 w-4 mr-2" /> Scan Barcode
