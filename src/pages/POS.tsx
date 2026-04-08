@@ -140,8 +140,11 @@ const POS = () => {
 
   const checkout = async () => {
     if (!user || cart.length === 0) return;
+    if (!planLimits.canAddSale) {
+      setUpgradeOpen(true);
+      return;
+    }
     setProcessing(true);
-
     const inserts = cart.map(i => {
       const profitPerItem = Number(i.product.price) - Number(i.product.cost_price || 0);
       return {
