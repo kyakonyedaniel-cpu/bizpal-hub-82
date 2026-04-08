@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Building2, MapPin } from 'lucide-react';
+import { Plus, Pencil, Trash2, Building2, MapPin, Lock } from 'lucide-react';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+import UpgradeModal from '@/components/UpgradeModal';
 
 const Branches = () => {
   const { user } = useAuth();
@@ -19,6 +21,8 @@ const Branches = () => {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState({ branch_name: '', location: '' });
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const planLimits = usePlanLimits();
 
   const fetchBranches = async () => {
     if (!user) return;
