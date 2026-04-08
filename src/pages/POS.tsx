@@ -115,6 +115,10 @@ const POS = () => {
 
   const handleCreateProduct = async () => {
     if (!user || !newProductForm.name) return;
+    if (!planLimits.canAddProduct) {
+      setUpgradeOpen(true);
+      return;
+    }
     const payload = {
       name: newProductForm.name,
       price: parseFloat(newProductForm.price) || 0,
