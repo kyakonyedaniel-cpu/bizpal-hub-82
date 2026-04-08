@@ -32,7 +32,6 @@ const Sales = () => {
   });
   const [upgradeOpen, setUpgradeOpen] = useState(false);
   const planLimits = usePlanLimits();
-  });
 
   const fetchData = async () => {
     if (!user) return;
