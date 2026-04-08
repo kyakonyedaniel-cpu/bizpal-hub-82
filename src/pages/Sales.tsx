@@ -30,6 +30,9 @@ const Sales = () => {
   const [form, setForm] = useState({
     product_id: '', quantity: '1', payment_method: 'Cash', customer_id: '', notes: '',
   });
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const planLimits = usePlanLimits();
+  });
 
   const fetchData = async () => {
     if (!user) return;
