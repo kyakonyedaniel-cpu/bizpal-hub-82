@@ -10,10 +10,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Printer, Share2 } from 'lucide-react';
+import { Plus, Printer, Share2, Lock } from 'lucide-react';
 import { format } from 'date-fns';
 import { formatUGX } from '@/lib/currency';
 import { saveOfflineSale } from '@/lib/offlineDb';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+import UpgradeModal from '@/components/UpgradeModal';
 
 const PAYMENT_METHODS = ['Cash', 'MTN MoMo', 'Airtel Money', 'Bank'];
 
@@ -28,6 +30,8 @@ const Sales = () => {
   const [form, setForm] = useState({
     product_id: '', quantity: '1', payment_method: 'Cash', customer_id: '', notes: '',
   });
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const planLimits = usePlanLimits();
 
   const fetchData = async () => {
     if (!user) return;
@@ -136,11 +140,30 @@ const Sales = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <UpgradeModal
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        feature="Free plan allows only 50 sales records. Upgrade to Premium for unlimited sales."
+        currentUsage={String(planLimits.salesCount)}
+        limit={String(planLimits.maxSales)}
+      />
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-heading font-bold">Sales</h1>
+        <div>
+          <h1 className="text-2xl font-heading font-bold">Sales</h1>
+          {!planLimits.isPremium && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <Lock className="h-3 w-3" /> Sales: {planLimits.salesCount}/{planLimits.maxSales}
+            </p>
+          )}
+        </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Record Sale</Button>
+            <Button onClick={(e) => {
+              if (!planLimits.canAddSale) {
+                e.preventDefault();
+                setUpgradeOpen(true);
+              }
+            }}><Plus className="h-4 w-4 mr-2" />Record Sale</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>

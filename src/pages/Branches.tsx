@@ -9,7 +9,9 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, Building2, MapPin } from 'lucide-react';
+import { Plus, Pencil, Trash2, Building2, MapPin, Lock } from 'lucide-react';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+import UpgradeModal from '@/components/UpgradeModal';
 
 const Branches = () => {
   const { user } = useAuth();
@@ -19,6 +21,8 @@ const Branches = () => {
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState<any>(null);
   const [form, setForm] = useState({ branch_name: '', location: '' });
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const planLimits = usePlanLimits();
 
   const fetchBranches = async () => {
     if (!user) return;
@@ -66,13 +70,30 @@ const Branches = () => {
 
   return (
     <div className="space-y-6 animate-fade-in max-w-3xl">
-      <div className="flex items-center justify-between">
+      <UpgradeModal
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        feature="Free plan allows only 1 branch. Upgrade to Premium for unlimited branches."
+        currentUsage={String(planLimits.branchCount)}
+        limit={String(planLimits.maxBranches)}
+      />
+      <div className="flex items-center justify-between flex-wrap gap-2">
         <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
           <Building2 className="h-6 w-6" /> Branches
         </h1>
+        {!planLimits.isPremium && (
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <Lock className="h-3 w-3" /> Branches: {planLimits.branchCount}/{planLimits.maxBranches}
+          </p>
+        )}
         <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" /> Add Branch</Button>
+            <Button onClick={(e) => {
+              if (!planLimits.canAddBranch && !editing) {
+                e.preventDefault();
+                setUpgradeOpen(true);
+              }
+            }}><Plus className="h-4 w-4 mr-2" /> Add Branch</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>

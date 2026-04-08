@@ -9,11 +9,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { useToast } from '@/hooks/use-toast';
-import { ShoppingCart, Plus, Minus, Trash2, Receipt, Package, Share2, ScanBarcode } from 'lucide-react';
+import { ShoppingCart, Plus, Minus, Trash2, Receipt, Package, Share2, ScanBarcode, Lock } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
 import { format } from 'date-fns';
 import { saveOfflineSale } from '@/lib/offlineDb';
 import BarcodeScanner from '@/components/BarcodeScanner';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+import UpgradeModal from '@/components/UpgradeModal';
 
 const PAYMENT_METHODS = ['Cash', 'MTN MoMo', 'Airtel Money', 'Bank'];
 
@@ -38,7 +40,8 @@ const POS = () => {
   const [newProductOpen, setNewProductOpen] = useState(false);
   const [scannedBarcode, setScannedBarcode] = useState('');
   const [newProductForm, setNewProductForm] = useState({ name: '', price: '', cost_price: '', stock_quantity: '' });
-
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const planLimits = usePlanLimits();
   const fetchData = async () => {
     if (!user) return;
     let pQuery = supabase.from('products').select('*').eq('user_id', user.id).gt('stock_quantity', 0).order('name');
@@ -112,6 +115,10 @@ const POS = () => {
 
   const handleCreateProduct = async () => {
     if (!user || !newProductForm.name) return;
+    if (!planLimits.canAddProduct) {
+      setUpgradeOpen(true);
+      return;
+    }
     const payload = {
       name: newProductForm.name,
       price: parseFloat(newProductForm.price) || 0,
@@ -137,8 +144,11 @@ const POS = () => {
 
   const checkout = async () => {
     if (!user || cart.length === 0) return;
+    if (!planLimits.canAddSale) {
+      setUpgradeOpen(true);
+      return;
+    }
     setProcessing(true);
-
     const inserts = cart.map(i => {
       const profitPerItem = Number(i.product.price) - Number(i.product.cost_price || 0);
       return {
@@ -214,10 +224,24 @@ const POS = () => {
 
   return (
     <div className="space-y-4 animate-fade-in">
+      <UpgradeModal
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        feature="Free plan limits reached. Upgrade to Premium for unlimited sales and products."
+        currentUsage={String(planLimits.salesCount)}
+        limit={String(planLimits.maxSales)}
+      />
       <div className="flex items-center justify-between flex-wrap gap-2">
-        <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
-          <ShoppingCart className="h-6 w-6" /> POS Mode
-        </h1>
+        <div>
+          <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
+            <ShoppingCart className="h-6 w-6" /> POS Mode
+          </h1>
+          {!planLimits.isPremium && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <Lock className="h-3 w-3" /> Sales: {planLimits.salesCount}/{planLimits.maxSales} · Products: {planLimits.productCount}/{planLimits.maxProducts}
+            </p>
+          )}
+        </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={() => setScannerOpen(true)}>
             <ScanBarcode className="h-4 w-4 mr-2" /> Scan Barcode

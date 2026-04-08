@@ -65,7 +65,7 @@ const Subscription = () => {
   const isPremium = profile?.plan === 'premium';
   const endDate = subscription?.end_date ? new Date(subscription.end_date) : null;
 
-  const freeFeatures = ['Single branch', 'Up to 50 sales records', 'Basic reports', 'Limited products'];
+  const freeFeatures = ['Single branch', 'Up to 50 sales records', 'Basic reports', 'Up to 20 products'];
   const premiumFeatures = ['Multi-branch support', 'Unlimited sales & products', 'Staff accounts & roles', 'Advanced reports & PDF export', 'Offline sync', 'Priority support'];
 
   const getStatusVariant = (status: string) => {

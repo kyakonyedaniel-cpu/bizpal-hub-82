@@ -9,9 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from '@/hooks/use-toast';
-import { Plus, Pencil, Trash2, AlertTriangle, ImagePlus, Package, ScanBarcode } from 'lucide-react';
+import { Plus, Pencil, Trash2, AlertTriangle, ImagePlus, Package, ScanBarcode, Lock } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
 import BarcodeScanner from '@/components/BarcodeScanner';
+import { usePlanLimits } from '@/hooks/usePlanLimits';
+import UpgradeModal from '@/components/UpgradeModal';
 
 const Inventory = () => {
   const { user } = useAuth();
@@ -27,6 +29,8 @@ const Inventory = () => {
   const [form, setForm] = useState({
     name: '', price: '', cost_price: '', stock_quantity: '', low_stock_threshold: '5', category: '', description: '', branch_id: '', barcode: '',
   });
+  const [upgradeOpen, setUpgradeOpen] = useState(false);
+  const planLimits = usePlanLimits();
 
   const fetchProducts = async () => {
     if (!user) return;
@@ -155,11 +159,30 @@ const Inventory = () => {
 
   return (
     <div className="space-y-6 animate-fade-in">
+      <UpgradeModal
+        open={upgradeOpen}
+        onOpenChange={setUpgradeOpen}
+        feature="Free plan allows only 20 products. Upgrade to Premium for unlimited products."
+        currentUsage={String(planLimits.productCount)}
+        limit={String(planLimits.maxProducts)}
+      />
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-heading font-bold">Inventory</h1>
+        <div>
+          <h1 className="text-2xl font-heading font-bold">Inventory</h1>
+          {!planLimits.isPremium && (
+            <p className="text-xs text-muted-foreground flex items-center gap-1 mt-1">
+              <Lock className="h-3 w-3" /> Products: {planLimits.productCount}/{planLimits.maxProducts}
+            </p>
+          )}
+        </div>
         <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" />Add Product</Button>
+            <Button onClick={(e) => {
+              if (!planLimits.canAddProduct && !editing) {
+                e.preventDefault();
+                setUpgradeOpen(true);
+              }
+            }}><Plus className="h-4 w-4 mr-2" />Add Product</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
