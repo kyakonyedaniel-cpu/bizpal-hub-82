@@ -74,9 +74,19 @@ const Branches = () => {
         <h1 className="text-2xl font-heading font-bold flex items-center gap-2">
           <Building2 className="h-6 w-6" /> Branches
         </h1>
+        {!planLimits.isPremium && (
+          <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <Lock className="h-3 w-3" /> Branches: {planLimits.branchCount}/{planLimits.maxBranches}
+          </p>
+        )}
         <Dialog open={open} onOpenChange={v => { setOpen(v); if (!v) resetForm(); }}>
           <DialogTrigger asChild>
-            <Button><Plus className="h-4 w-4 mr-2" /> Add Branch</Button>
+            <Button onClick={(e) => {
+              if (!planLimits.canAddBranch && !editing) {
+                e.preventDefault();
+                setUpgradeOpen(true);
+              }
+            }}><Plus className="h-4 w-4 mr-2" /> Add Branch</Button>
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
