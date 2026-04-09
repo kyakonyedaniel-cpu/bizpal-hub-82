@@ -15,7 +15,6 @@ Deno.serve(async (req) => {
     const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Check if this is a test request for a specific user
     let targetUserId: string | null = null;
     if (req.method === 'POST') {
       const authHeader = req.headers.get('Authorization');
@@ -29,7 +28,6 @@ Deno.serve(async (req) => {
       }
     }
 
-    // Get profiles with WhatsApp reports enabled (or specific user for test)
     let profilesQuery = supabase.from('profiles').select('*');
     if (targetUserId) {
       profilesQuery = profilesQuery.eq('user_id', targetUserId);
@@ -51,7 +49,6 @@ Deno.serve(async (req) => {
     const reports: { userId: string; phone: string; message: string }[] = [];
 
     for (const profile of profiles) {
-      // Fetch today's sales
       const { data: sales } = await supabase
         .from('sales')
         .select('*, products(name)')
@@ -59,7 +56,6 @@ Deno.serve(async (req) => {
         .gte('sale_date', startOfDay)
         .lt('sale_date', endOfDay);
 
-      // Fetch today's expenses
       const { data: expenses } = await supabase
         .from('expenses')
         .select('*')
@@ -67,14 +63,6 @@ Deno.serve(async (req) => {
         .gte('expense_date', startOfDay)
         .lt('expense_date', endOfDay);
 
-      // Fetch low stock products
-      const { data: lowStock } = await supabase
-        .from('products')
-        .select('name, stock_quantity, low_stock_threshold')
-        .eq('user_id', profile.user_id)
-        .filter('stock_quantity', 'lte', 'low_stock_threshold');
-
-      // Actually we can't use column comparison in PostgREST filter, let's fetch all and filter
       const { data: allProducts } = await supabase
         .from('products')
         .select('name, stock_quantity, low_stock_threshold')
@@ -85,8 +73,8 @@ Deno.serve(async (req) => {
       const totalSales = (sales || []).reduce((sum, s) => sum + Number(s.total_amount), 0);
       const totalExpenses = (expenses || []).reduce((sum, e) => sum + Number(e.amount), 0);
       const profit = totalSales - totalExpenses;
+      const transactionCount = (sales || []).length;
 
-      // Find top product
       const productSales: Record<string, { name: string; total: number }> = {};
       for (const sale of (sales || [])) {
         const name = sale.products?.name || 'Unknown';
@@ -103,7 +91,7 @@ Deno.serve(async (req) => {
 
       const formatUGX = (n: number) => `UGX ${n.toLocaleString()}`;
 
-      const message = `📊 *BizPal Daily Report*\n\n📅 ${dateStr}\n\n💰 Total Sales: ${formatUGX(totalSales)}\n💸 Total Expenses: ${formatUGX(totalExpenses)}\n📈 Profit: ${formatUGX(profit)}\n\n🏆 Top Product: ${topProduct ? `${topProduct.name} (${formatUGX(topProduct.total)})` : 'No sales today'}\n\n📦 *Low Stock Warning:*\n${lowStockText}\n\n_Powered by BizPal Hub_\nManage your business smarter:\nhttps://bizpal-hub-82.lovable.app`;
+      const message = `📊 *Daily Business Report*\n\n📅 ${dateStr}\n\n💰 Total Sales: ${formatUGX(totalSales)}\n💸 Total Expenses: ${formatUGX(totalExpenses)}\n📈 Profit: ${formatUGX(profit)}\n🧾 Transactions: ${transactionCount}\n\n🏆 Top Product: ${topProduct ? `${topProduct.name} (${formatUGX(topProduct.total)})` : 'No sales today'}\n\n📦 *Low Stock Warning:*\n${lowStockText}`;
 
       const phone = profile.whatsapp_number?.replace(/[^0-9]/g, '') || '';
       if (phone || targetUserId) {

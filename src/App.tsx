@@ -22,6 +22,7 @@ import StaffManagement from "./pages/StaffManagement";
 import Subscription from "./pages/Subscription";
 import AIInsights from "./pages/AIInsights";
 import AdminPayments from "./pages/AdminPayments";
+import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,7 @@ const App = () => (
               <Routes>
                 <Route path="/" element={<Index />} />
                 <Route path="/auth" element={<Auth />} />
+                <Route path="/reset-password" element={<ResetPassword />} />
                 <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
                 <Route path="/sales" element={<ProtectedRoute><Sales /></ProtectedRoute>} />
                 <Route path="/pos" element={<ProtectedRoute><POS /></ProtectedRoute>} />

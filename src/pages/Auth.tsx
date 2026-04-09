@@ -12,6 +12,7 @@ import { BarChart3, TrendingUp, Package, Users } from 'lucide-react';
 const Auth = () => {
   const [searchParams] = useSearchParams();
   const [isLogin, setIsLogin] = useState(true);
+  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [businessName, setBusinessName] = useState('');
@@ -25,10 +26,28 @@ const Auth = () => {
     if (user) navigate('/dashboard');
   }, [user, navigate]);
 
-  // If ref param present, default to signup
   useEffect(() => {
     if (searchParams.get('ref')) setIsLogin(false);
   }, [searchParams]);
+
+  const handleForgotPassword = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!email) {
+      toast({ title: 'Error', description: 'Please enter your email address.', variant: 'destructive' });
+      return;
+    }
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) {
+      toast({ title: 'Error', description: error.message, variant: 'destructive' });
+    } else {
+      toast({ title: 'Reset link sent!', description: 'Check your email for a password reset link.' });
+      setIsForgotPassword(false);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,7 +65,6 @@ const Auth = () => {
           if (businessName) {
             await supabase.from('profiles').update({ business_name: businessName }).eq('user_id', data.user.id);
           }
-          // Record referral if code provided
           if (referralCode.trim()) {
             const { data: referrerProfile } = await supabase
               .from('profiles')
@@ -115,72 +133,113 @@ const Auth = () => {
               </h1>
             </div>
             <CardTitle className="text-2xl font-heading">
-              {isLogin ? 'Welcome back' : 'Create your account'}
+              {isForgotPassword ? 'Reset Password' : isLogin ? 'Welcome back' : 'Create your account'}
             </CardTitle>
             <CardDescription>
-              {isLogin ? 'Sign in to your dashboard' : 'Start managing your business today'}
+              {isForgotPassword ? 'Enter your email to receive a reset link' : isLogin ? 'Sign in to your dashboard' : 'Start managing your business today'}
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-4">
-              {!isLogin && (
-                <>
+            {isForgotPassword ? (
+              <form onSubmit={handleForgotPassword} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="resetEmail">Email</Label>
+                  <Input
+                    id="resetEmail"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="you@example.com"
+                    required
+                  />
+                </div>
+                <Button type="submit" className="w-full" disabled={loading}>
+                  {loading ? 'Sending...' : 'Send Reset Link'}
+                </Button>
+                <div className="text-center">
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotPassword(false)}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    Back to Sign In
+                  </button>
+                </div>
+              </form>
+            ) : (
+              <>
+                <form onSubmit={handleSubmit} className="space-y-4">
+                  {!isLogin && (
+                    <>
+                      <div className="space-y-2">
+                        <Label htmlFor="businessName">Business Name</Label>
+                        <Input
+                          id="businessName"
+                          value={businessName}
+                          onChange={(e) => setBusinessName(e.target.value)}
+                          placeholder="My Business"
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor="referralCode">Referral Code (optional)</Label>
+                        <Input
+                          id="referralCode"
+                          value={referralCode}
+                          onChange={(e) => setReferralCode(e.target.value)}
+                          placeholder="Enter referral code"
+                          className="uppercase"
+                        />
+                      </div>
+                    </>
+                  )}
                   <div className="space-y-2">
-                    <Label htmlFor="businessName">Business Name</Label>
+                    <Label htmlFor="email">Email</Label>
                     <Input
-                      id="businessName"
-                      value={businessName}
-                      onChange={(e) => setBusinessName(e.target.value)}
-                      placeholder="My Business"
+                      id="email"
+                      type="email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      placeholder="you@example.com"
+                      required
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="referralCode">Referral Code (optional)</Label>
+                    <div className="flex items-center justify-between">
+                      <Label htmlFor="password">Password</Label>
+                      {isLogin && (
+                        <button
+                          type="button"
+                          onClick={() => setIsForgotPassword(true)}
+                          className="text-xs text-primary hover:underline"
+                        >
+                          Forgot Password?
+                        </button>
+                      )}
+                    </div>
                     <Input
-                      id="referralCode"
-                      value={referralCode}
-                      onChange={(e) => setReferralCode(e.target.value)}
-                      placeholder="Enter referral code"
-                      className="uppercase"
+                      id="password"
+                      type="password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      placeholder="••••••••"
+                      required
+                      minLength={6}
                     />
                   </div>
-                </>
-              )}
-              <div className="space-y-2">
-                <Label htmlFor="email">Email</Label>
-                <Input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="you@example.com"
-                  required
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="password">Password</Label>
-                <Input
-                  id="password"
-                  type="password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  placeholder="••••••••"
-                  required
-                  minLength={6}
-                />
-              </div>
-              <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Create Account'}
-              </Button>
-            </form>
-            <div className="mt-6 text-center">
-              <button
-                onClick={() => setIsLogin(!isLogin)}
-                className="text-sm text-muted-foreground hover:text-primary transition-colors"
-              >
-                {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
-              </button>
-            </div>
+                  <Button type="submit" className="w-full" disabled={loading}>
+                    {loading ? 'Loading...' : isLogin ? 'Sign In' : 'Create Account'}
+                  </Button>
+                </form>
+                <div className="mt-6 text-center">
+                  <button
+                    onClick={() => setIsLogin(!isLogin)}
+                    className="text-sm text-muted-foreground hover:text-primary transition-colors"
+                  >
+                    {isLogin ? "Don't have an account? Sign up" : 'Already have an account? Sign in'}
+                  </button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
