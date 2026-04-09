@@ -5,15 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays } from 'date-fns';
-import { TrendingUp, Award, Download } from 'lucide-react';
+import { TrendingUp, Award, Download, FileSpreadsheet } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
+import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 const COLORS = ['hsl(160, 60%, 38%)', 'hsl(38, 92%, 55%)', 'hsl(210, 80%, 55%)', 'hsl(0, 72%, 51%)', 'hsl(280, 60%, 50%)'];
 
 const Reports = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [dailyData, setDailyData] = useState<any[]>([]);
   const [paymentData, setPaymentData] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
@@ -172,13 +175,68 @@ const Reports = () => {
     doc.save(`${businessName.replace(/\s+/g, '_')}_Report_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
   };
 
+  const exportExcel = () => {
+    if (topProducts.length === 0 && dailyData.length === 0) {
+      toast({ title: 'No data', description: 'There is no report data to export.', variant: 'destructive' });
+      return;
+    }
+
+    const wb = XLSX.utils.book_new();
+
+    // Summary sheet
+    const summaryData = [
+      ['Business Report', businessName],
+      ['Date', format(new Date(), 'MMMM d, yyyy')],
+      [''],
+      ['Total Sales (UGX)', totals.sales],
+      ['Total Expenses (UGX)', totals.expenses],
+      ['Net Profit (UGX)', totals.sales - totals.expenses],
+      ['Profit Margin', totals.sales > 0 ? `${(((totals.sales - totals.expenses) / totals.sales) * 100).toFixed(1)}%` : '0%'],
+    ];
+    const summaryWs = XLSX.utils.aoa_to_sheet(summaryData);
+    summaryWs['!cols'] = [{ wch: 20 }, { wch: 25 }];
+    XLSX.utils.book_append_sheet(wb, summaryWs, 'Summary');
+
+    // Daily data sheet
+    if (dailyData.length > 0) {
+      const dailyRows = dailyData.map(d => ({ Date: d.date, 'Sales (UGX)': d.sales, 'Expenses (UGX)': d.expenses }));
+      const dailyWs = XLSX.utils.json_to_sheet(dailyRows);
+      dailyWs['!cols'] = [{ wch: 12 }, { wch: 15 }, { wch: 15 }];
+      XLSX.utils.book_append_sheet(wb, dailyWs, 'Daily Breakdown');
+    }
+
+    // Top products sheet
+    if (topProducts.length > 0) {
+      const productRows = topProducts.map((p, i) => ({ '#': i + 1, Product: p.name, 'Units Sold': p.qty, 'Revenue (UGX)': p.revenue }));
+      const productsWs = XLSX.utils.json_to_sheet(productRows);
+      productsWs['!cols'] = [{ wch: 5 }, { wch: 25 }, { wch: 12 }, { wch: 18 }];
+      XLSX.utils.book_append_sheet(wb, productsWs, 'Top Products');
+    }
+
+    // Payment methods sheet
+    if (paymentData.length > 0) {
+      const paymentRows = paymentData.map(p => ({ Method: p.name, 'Amount (UGX)': p.value }));
+      const paymentWs = XLSX.utils.json_to_sheet(paymentRows);
+      paymentWs['!cols'] = [{ wch: 15 }, { wch: 18 }];
+      XLSX.utils.book_append_sheet(wb, paymentWs, 'Payment Methods');
+    }
+
+    XLSX.writeFile(wb, `${businessName.replace(/\s+/g, '_')}_Report_${format(new Date(), 'yyyy-MM-dd')}.xlsx`);
+    toast({ title: 'Excel exported!', description: 'Report downloaded successfully.' });
+  };
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-heading font-bold">Reports & Insights</h1>
-        <Button onClick={exportPDF} variant="outline">
-          <Download className="h-4 w-4 mr-2" /> Export PDF
-        </Button>
+        <div className="flex gap-2">
+          <Button onClick={exportExcel} variant="outline">
+            <FileSpreadsheet className="h-4 w-4 mr-2" /> Export Excel
+          </Button>
+          <Button onClick={exportPDF} variant="outline">
+            <Download className="h-4 w-4 mr-2" /> Export PDF
+          </Button>
+        </div>
       </div>
 
       {insights.length > 0 && (
