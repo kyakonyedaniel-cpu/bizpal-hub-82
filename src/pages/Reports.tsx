@@ -5,14 +5,18 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from 'recharts';
 import { format, subDays } from 'date-fns';
-import { TrendingUp, Award, Download } from 'lucide-react';
+import { TrendingUp, Award, Download, FileSpreadsheet } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
+import { useToast } from '@/hooks/use-toast';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
+import * as XLSX from 'xlsx';
 
 const COLORS = ['hsl(160, 60%, 38%)', 'hsl(38, 92%, 55%)', 'hsl(210, 80%, 55%)', 'hsl(0, 72%, 51%)', 'hsl(280, 60%, 50%)'];
 
 const Reports = () => {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const { user } = useAuth();
   const [dailyData, setDailyData] = useState<any[]>([]);
   const [paymentData, setPaymentData] = useState<any[]>([]);
