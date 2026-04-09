@@ -17,7 +17,6 @@ const COLORS = ['hsl(160, 60%, 38%)', 'hsl(38, 92%, 55%)', 'hsl(210, 80%, 55%)',
 const Reports = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { user } = useAuth();
   const [dailyData, setDailyData] = useState<any[]>([]);
   const [paymentData, setPaymentData] = useState<any[]>([]);
   const [topProducts, setTopProducts] = useState<any[]>([]);
