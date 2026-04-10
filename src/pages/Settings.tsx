@@ -8,7 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useToast } from '@/hooks/use-toast';
-import { Settings as SettingsIcon, User, Building2, CreditCard, Moon, MessageCircle, Send } from 'lucide-react';
+import { Settings as SettingsIcon, User, Building2, CreditCard, Moon, MessageCircle, Send, Gift, Copy } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Link } from 'react-router-dom';
 
@@ -174,6 +174,39 @@ const Settings = () => {
             </div>
             <Switch checked={theme === 'dark'} onCheckedChange={toggleTheme} />
           </div>
+        </CardContent>
+      </Card>
+
+      <Card className="glass-card">
+        <CardHeader>
+          <CardTitle className="font-heading flex items-center gap-2">
+            <Gift className="h-5 w-5 text-primary" /> Invite & Earn
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-muted-foreground">Share your referral code or link. Both you and your friend earn 7 days of free Premium!</p>
+          {profile?.referral_code && (
+            <>
+              <div className="flex items-center gap-2">
+                <Input value={profile.referral_code} readOnly className="font-mono text-center bg-muted" />
+                <Button variant="outline" size="icon" onClick={() => {
+                  navigator.clipboard.writeText(profile.referral_code);
+                  toast({ title: 'Copied!', description: 'Referral code copied to clipboard.' });
+                }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <div className="flex items-center gap-2">
+                <Input value={`${window.location.origin}/auth?ref=${profile.referral_code}`} readOnly className="text-xs bg-muted" />
+                <Button variant="outline" size="icon" onClick={() => {
+                  navigator.clipboard.writeText(`${window.location.origin}/auth?ref=${profile.referral_code}`);
+                  toast({ title: 'Copied!', description: 'Invite link copied to clipboard.' });
+                }}>
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </>
+          )}
         </CardContent>
       </Card>
 

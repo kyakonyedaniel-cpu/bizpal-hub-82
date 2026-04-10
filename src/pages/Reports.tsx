@@ -94,6 +94,11 @@ const Reports = () => {
   }, [user]);
 
   const exportPDF = () => {
+    if (topProducts.length === 0 && dailyData.length === 0) {
+      toast({ title: 'No data', description: 'There is no report data to export.', variant: 'destructive' });
+      return;
+    }
+
     const doc = new jsPDF();
     const today = format(new Date(), 'MMMM d, yyyy');
 
