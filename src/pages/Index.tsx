@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { BarChart3, Package, Receipt, Users, ArrowRight, Shield, Zap } from 'lucide-react';
+import { BarChart3, Package, Receipt, Users, ArrowRight, Shield, Zap, Download, Monitor, Smartphone } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const features = [
@@ -11,6 +11,8 @@ const features = [
 ];
 
 const Index = () => {
+  const appUrl = window.location.origin;
+
   return (
     <div className="min-h-screen bg-background">
       {/* Nav */}
@@ -75,13 +77,71 @@ const Index = () => {
         </div>
       </section>
 
+      {/* Download App Section */}
+      <section className="px-6 lg:px-12 py-16 max-w-4xl mx-auto">
+        <h2 className="text-3xl font-heading font-bold text-center mb-4">Download the App</h2>
+        <p className="text-center text-muted-foreground mb-10">Access SmartBiz Manager on any device — desktop or mobile.</p>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1, duration: 0.5 }}
+            className="glass-card rounded-xl p-6 text-center"
+          >
+            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Monitor className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-heading font-semibold text-lg mb-2">Desktop</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Install as a desktop app from your browser for quick access.
+            </p>
+            <Button variant="outline" className="w-full" onClick={() => {
+              // PWA install prompt or instructions
+              if ('beforeinstallprompt' in window && (window as any).deferredPrompt) {
+                (window as any).deferredPrompt.prompt();
+              } else {
+                window.open(appUrl, '_blank');
+              }
+            }}>
+              <Download className="h-4 w-4 mr-2" /> Install Desktop App
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">Chrome/Edge: Menu → Install App</p>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2, duration: 0.5 }}
+            className="glass-card rounded-xl p-6 text-center"
+          >
+            <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <Smartphone className="h-6 w-6 text-primary" />
+            </div>
+            <h3 className="font-heading font-semibold text-lg mb-2">Mobile</h3>
+            <p className="text-sm text-muted-foreground mb-4">
+              Add to your home screen for a native app experience.
+            </p>
+            <Button variant="outline" className="w-full" onClick={() => {
+              if ('beforeinstallprompt' in window && (window as any).deferredPrompt) {
+                (window as any).deferredPrompt.prompt();
+              } else {
+                window.open(appUrl, '_blank');
+              }
+            }}>
+              <Download className="h-4 w-4 mr-2" /> Install Mobile App
+            </Button>
+            <p className="text-xs text-muted-foreground mt-2">iOS: Share → Add to Home Screen</p>
+          </motion.div>
+        </div>
+      </section>
+
       {/* Pricing */}
       <section className="px-6 lg:px-12 py-16 max-w-4xl mx-auto">
         <h2 className="text-3xl font-heading font-bold text-center mb-10">Simple Pricing</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="glass-card rounded-xl p-8">
             <h3 className="font-heading font-bold text-xl mb-2">Free</h3>
-            <p className="text-3xl font-heading font-bold mb-4">Free<span className="text-base font-normal text-muted-foreground"></span></p>
+            <p className="text-3xl font-heading font-bold mb-4">Free</p>
             <ul className="space-y-2 text-sm text-muted-foreground mb-6">
               <li className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary" />Up to 50 sales records</li>
               <li className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary" />Basic dashboard</li>
