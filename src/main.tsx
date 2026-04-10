@@ -11,4 +11,10 @@ if ('serviceWorker' in navigator) {
   });
 }
 
+// Capture PWA install prompt for later use
+window.addEventListener('beforeinstallprompt', (e) => {
+  e.preventDefault();
+  (window as any).deferredPrompt = e;
+});
+
 createRoot(document.getElementById("root")!).render(<App />);
