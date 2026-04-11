@@ -131,7 +131,7 @@ const Reports = () => {
       doc.setFont('helvetica', 'bold');
       doc.text('Top Selling Products', 14, 85);
 
-      (doc as any).autoTable({
+      autoTable(doc, {
         startY: 90,
         head: [['#', 'Product', 'Units Sold', 'Revenue (UGX)']],
         body: topProducts.map((p, i) => [i + 1, p.name, p.qty, p.revenue.toLocaleString()]),
@@ -143,13 +143,13 @@ const Reports = () => {
 
     // Payment methods
     if (paymentData.length > 0) {
-      const startY = (doc as any).lastAutoTable?.finalY + 15 || 130;
+      const startY1 = (doc as any).lastAutoTable?.finalY + 15 || 130;
       doc.setFontSize(14);
       doc.setFont('helvetica', 'bold');
-      doc.text('Payment Methods', 14, startY);
+      doc.text('Payment Methods', 14, startY1);
 
-      (doc as any).autoTable({
-        startY: startY + 5,
+      autoTable(doc, {
+        startY: startY1 + 5,
         head: [['Method', 'Amount (UGX)']],
         body: paymentData.map(p => [p.name, p.value.toLocaleString()]),
         theme: 'grid',
