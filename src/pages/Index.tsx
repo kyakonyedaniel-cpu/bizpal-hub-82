@@ -77,10 +77,10 @@ const Index = () => {
         </div>
       </section>
 
-      {/* Download App Section */}
+      {/* Install App Section */}
       <section className="px-6 lg:px-12 py-16 max-w-4xl mx-auto">
-        <h2 className="text-3xl font-heading font-bold text-center mb-4">Download the App</h2>
-        <p className="text-center text-muted-foreground mb-10">Access SmartBiz Manager on any device — desktop or mobile.</p>
+        <h2 className="text-3xl font-heading font-bold text-center mb-4">Install the App</h2>
+        <p className="text-center text-muted-foreground mb-10">Install SmartBiz Manager on your device for quick, native-like access — no app store needed.</p>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -93,19 +93,24 @@ const Index = () => {
             </div>
             <h3 className="font-heading font-semibold text-lg mb-2">Desktop</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Install as a desktop app from your browser for quick access.
+              Install as a desktop app for quick access from your taskbar.
             </p>
-            <Button variant="outline" className="w-full" onClick={() => {
-              // PWA install prompt or instructions
-              if ('beforeinstallprompt' in window && (window as any).deferredPrompt) {
-                (window as any).deferredPrompt.prompt();
+            <Button variant="outline" className="w-full" id="install-desktop-btn" onClick={() => {
+              const prompt = (window as any).deferredPrompt;
+              if (prompt) {
+                prompt.prompt();
+                prompt.userChoice.then((choice: any) => {
+                  if (choice.outcome === 'accepted') {
+                    (window as any).deferredPrompt = null;
+                  }
+                });
               } else {
-                window.open(appUrl, '_blank');
+                alert('To install:\n\n• Chrome/Edge: Click the install icon (⊕) in your address bar, or go to Menu (⋮) → "Install SmartBiz Manager"\n\n• If you don\'t see it, make sure you\'re using Chrome or Edge browser.');
               }
             }}>
-              <Download className="h-4 w-4 mr-2" /> Install Desktop App
+              <Download className="h-4 w-4 mr-2" /> Install on Desktop
             </Button>
-            <p className="text-xs text-muted-foreground mt-2">Chrome/Edge: Menu → Install App</p>
+            <p className="text-xs text-muted-foreground mt-2">Chrome / Edge: look for ⊕ in the address bar</p>
           </motion.div>
 
           <motion.div
@@ -119,18 +124,32 @@ const Index = () => {
             </div>
             <h3 className="font-heading font-semibold text-lg mb-2">Mobile</h3>
             <p className="text-sm text-muted-foreground mb-4">
-              Add to your home screen for a native app experience.
+              Add to your home screen for a full-screen app experience.
             </p>
-            <Button variant="outline" className="w-full" onClick={() => {
-              if ('beforeinstallprompt' in window && (window as any).deferredPrompt) {
-                (window as any).deferredPrompt.prompt();
+            <Button variant="outline" className="w-full" id="install-mobile-btn" onClick={() => {
+              const prompt = (window as any).deferredPrompt;
+              if (prompt) {
+                prompt.prompt();
+                prompt.userChoice.then((choice: any) => {
+                  if (choice.outcome === 'accepted') {
+                    (window as any).deferredPrompt = null;
+                  }
+                });
               } else {
-                window.open(appUrl, '_blank');
+                const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+                if (isIOS) {
+                  alert('To install on iPhone/iPad:\n\n1. Tap the Share button (□↑) at the bottom of Safari\n2. Scroll down and tap "Add to Home Screen"\n3. Tap "Add"');
+                } else {
+                  alert('To install on Android:\n\n1. Tap the menu (⋮) in Chrome\n2. Tap "Add to Home Screen" or "Install App"\n3. Tap "Install"');
+                }
               }
             }}>
-              <Download className="h-4 w-4 mr-2" /> Install Mobile App
+              <Download className="h-4 w-4 mr-2" /> Install on Mobile
             </Button>
-            <p className="text-xs text-muted-foreground mt-2">iOS: Share → Add to Home Screen</p>
+            <p className="text-xs text-muted-foreground mt-2">
+              iOS: Safari → Share → Add to Home Screen<br/>
+              Android: Chrome → Menu → Install App
+            </p>
           </motion.div>
         </div>
       </section>
