@@ -25,7 +25,7 @@ export const Caption: React.FC<CaptionProps> = ({ text, startFrame = 0, style, h
   return (
     <div style={{
       position: "absolute",
-      bottom: 80,
+      bottom: 70,
       left: 0,
       right: 0,
       display: "flex",

@@ -96,7 +96,7 @@ export const Scene5: React.FC = () => {
       <div style={{
         opacity: tagOp,
         position: "absolute",
-        bottom: 130,
+        bottom: 140,
         fontFamily: "'Inter', sans-serif",
         fontSize: 16,
         color: "rgba(232, 236, 241, 0.3)",
