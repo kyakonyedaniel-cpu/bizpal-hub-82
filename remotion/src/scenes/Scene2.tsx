@@ -1,4 +1,5 @@
 import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { Caption } from "../components/Caption";
 
 export const Scene2: React.FC = () => {
   const frame = useCurrentFrame();
@@ -14,7 +15,6 @@ export const Scene2: React.FC = () => {
   );
 
   const lineWidth = interpolate(frame, [20, 50], [0, 200], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
-
   const pulse = Math.sin(frame * 0.08) * 0.03 + 1;
 
   return (
@@ -25,7 +25,6 @@ export const Scene2: React.FC = () => {
       justifyContent: "center",
       flexDirection: "column",
     }}>
-      {/* Icon */}
       <div style={{
         width: 100, height: 100,
         borderRadius: 24,
@@ -43,7 +42,6 @@ export const Scene2: React.FC = () => {
         </svg>
       </div>
 
-      {/* Name */}
       <div style={{
         opacity: logoOp,
         transform: `scale(${logoScale})`,
@@ -57,7 +55,6 @@ export const Scene2: React.FC = () => {
         <span style={{ color: "#E8ECF1" }}>Biz</span>
       </div>
 
-      {/* Divider line */}
       <div style={{
         width: lineWidth,
         height: 3,
@@ -67,7 +64,6 @@ export const Scene2: React.FC = () => {
         borderRadius: 2,
       }} />
 
-      {/* Tagline */}
       <div style={{
         opacity: tagOp,
         transform: `translateY(${tagY}px)`,
@@ -79,6 +75,12 @@ export const Scene2: React.FC = () => {
       }}>
         Manage smarter, not harder
       </div>
+
+      <Caption
+        text="Meet SmartBiz Manager — your all-in-one business dashboard."
+        startFrame={20}
+        highlight="SmartBiz Manager"
+      />
     </AbsoluteFill>
   );
 };
