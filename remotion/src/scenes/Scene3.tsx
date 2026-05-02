@@ -1,4 +1,5 @@
 import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { Caption } from "../components/Caption";
 
 const features = [
   { icon: "📊", title: "Sales Tracking", desc: "Monitor every sale in real-time" },
@@ -16,6 +17,10 @@ export const Scene3: React.FC = () => {
     spring({ frame, fps, config: { damping: 20, stiffness: 150 } }),
     [0, 1], [40, 0]
   );
+
+  // Two-part caption
+  const caption1Visible = frame >= 10 && frame < 75;
+  const caption2Visible = frame >= 75;
 
   return (
     <AbsoluteFill style={{
@@ -95,6 +100,21 @@ export const Scene3: React.FC = () => {
           );
         })}
       </div>
+
+      {caption1Visible && (
+        <Caption
+          text="Track sales, inventory, expenses, and customers — all in one place."
+          startFrame={10}
+          highlight="all in one place"
+        />
+      )}
+      {caption2Visible && (
+        <Caption
+          text="Get real-time alerts and AI-powered insights to grow faster."
+          startFrame={75}
+          highlight="AI-powered insights"
+        />
+      )}
     </AbsoluteFill>
   );
 };
