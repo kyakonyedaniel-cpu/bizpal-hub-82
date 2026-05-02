@@ -1,4 +1,5 @@
 import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { Caption } from "../components/Caption";
 
 export const Scene5: React.FC = () => {
   const frame = useCurrentFrame();
@@ -14,10 +15,8 @@ export const Scene5: React.FC = () => {
   );
 
   const pulse = Math.sin(frame * 0.1) * 0.03 + 1;
-
   const tagOp = interpolate(frame, [50, 70], [0, 1], { extrapolateRight: "clamp" });
 
-  // Floating particles
   const particles = Array.from({ length: 12 }, (_, i) => ({
     x: ((i * 173) % 1920),
     y: ((i * 241) % 1080),
@@ -34,17 +33,14 @@ export const Scene5: React.FC = () => {
       justifyContent: "center",
       flexDirection: "column",
     }}>
-      {/* Floating particles */}
       {particles.map((p, i) => {
         const pOp = interpolate(frame, [p.delay, p.delay + 20], [0, 0.3], { extrapolateLeft: "clamp", extrapolateRight: "clamp" });
         const pY = p.y + Math.sin((frame + p.delay) * p.speed * 0.1) * 30;
         return (
           <div key={i} style={{
             position: "absolute",
-            left: p.x,
-            top: pY,
-            width: p.size,
-            height: p.size,
+            left: p.x, top: pY,
+            width: p.size, height: p.size,
             borderRadius: "50%",
             background: "#279E6E",
             opacity: pOp,
@@ -52,7 +48,6 @@ export const Scene5: React.FC = () => {
         );
       })}
 
-      {/* CTA text */}
       <div style={{
         opacity: ctaOp,
         transform: `scale(${ctaScale})`,
@@ -67,7 +62,6 @@ export const Scene5: React.FC = () => {
         Start <span style={{ color: "#279E6E" }}>Free</span> Today
       </div>
 
-      {/* Button-like CTA */}
       <div style={{
         opacity: ctaOp,
         transform: `scale(${ctaScale * pulse})`,
@@ -88,7 +82,6 @@ export const Scene5: React.FC = () => {
         </div>
       </div>
 
-      {/* URL */}
       <div style={{
         opacity: urlOp,
         transform: `translateY(${urlY}px)`,
@@ -100,11 +93,10 @@ export const Scene5: React.FC = () => {
         bizpal-hub-82.lovable.app
       </div>
 
-      {/* Bottom tagline */}
       <div style={{
         opacity: tagOp,
         position: "absolute",
-        bottom: 60,
+        bottom: 140,
         fontFamily: "'Inter', sans-serif",
         fontSize: 16,
         color: "rgba(232, 236, 241, 0.3)",
@@ -113,6 +105,12 @@ export const Scene5: React.FC = () => {
       }}>
         No credit card required • Works on any device
       </div>
+
+      <Caption
+        text="Sign up now at bizpal-hub-82.lovable.app — it's completely free to start!"
+        startFrame={15}
+        highlight="completely free"
+      />
     </AbsoluteFill>
   );
 };

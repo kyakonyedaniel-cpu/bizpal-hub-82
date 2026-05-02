@@ -1,4 +1,5 @@
 import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { Caption } from "../components/Caption";
 
 export const Scene1: React.FC = () => {
   const frame = useCurrentFrame();
@@ -63,6 +64,12 @@ export const Scene1: React.FC = () => {
           borderRadius: 3,
         }} />
       </div>
+
+      <Caption
+        text="Juggling sales, stock, expenses, and customers — it's a lot."
+        startFrame={25}
+        highlight="it's a lot"
+      />
     </AbsoluteFill>
   );
 };

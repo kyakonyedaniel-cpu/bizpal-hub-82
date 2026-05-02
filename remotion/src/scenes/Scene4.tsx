@@ -1,4 +1,5 @@
 import { AbsoluteFill, useCurrentFrame, interpolate, spring, useVideoConfig } from "remotion";
+import { Caption } from "../components/Caption";
 
 const premiumFeatures = [
   "✦ Unlimited sales & products",
@@ -22,6 +23,9 @@ export const Scene4: React.FC = () => {
   );
 
   const freeOp = interpolate(frame, [10, 25], [0, 1], { extrapolateRight: "clamp" });
+
+  const caption1Visible = frame >= 5 && frame < 70;
+  const caption2Visible = frame >= 70;
 
   return (
     <AbsoluteFill style={{
@@ -107,6 +111,21 @@ export const Scene4: React.FC = () => {
           })}
         </div>
       </div>
+
+      {caption1Visible && (
+        <Caption
+          text="Start free — no credit card needed."
+          startFrame={5}
+          highlight="Start free"
+        />
+      )}
+      {caption2Visible && (
+        <Caption
+          text="Upgrade to Premium for just 30,000 UGX per month — unlock everything."
+          startFrame={70}
+          highlight="unlock everything"
+        />
+      )}
     </AbsoluteFill>
   );
 };
