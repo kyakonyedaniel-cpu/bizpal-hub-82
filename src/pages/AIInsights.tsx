@@ -46,9 +46,9 @@ const AIInsights = () => {
       const monthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd');
       const lastMonthStart = format(startOfMonth(subDays(new Date(), 30)), 'yyyy-MM-dd');
 
-      let salesQuery = supabase.from('sales').select('total_amount, sale_date, payment_method').eq('user_id', user!.id);
-      let productsQuery = supabase.from('products').select('name, stock_quantity, cost_price, selling_price, category').eq('user_id', user!.id);
-      let customersQuery = supabase.from('customers').select('id, total_purchases, last_purchase_date').eq('user_id', user!.id);
+      let salesQuery = supabase.from('sales').select('total_amount, sale_date, payment_method, customer_id').eq('user_id', user!.id);
+      let productsQuery = supabase.from('products').select('name, stock_quantity, cost_price, price, category').eq('user_id', user!.id);
+      let customersQuery = supabase.from('customers').select('id').eq('user_id', user!.id);
       let expensesQuery = supabase.from('expenses').select('amount, category').eq('user_id', user!.id);
 
       if (!allBranchesMode && currentBranch) {
@@ -83,11 +83,15 @@ const AIInsights = () => {
       });
       const topCategory = Object.entries(categorySales).sort((a, b) => b[1] - a[1])[0]?.[0] || 'N/A';
 
-      const activeCustomers = customers.filter((c: any) => {
-        const lastPurchase = c.last_purchase_date ? new Date(c.last_purchase_date) : null;
-        return lastPurchase && (new Date().getTime() - lastPurchase.getTime()) / (1000 * 60 * 60 * 24) <= 30;
-      });
-      const customerRetention = customers.length > 0 ? (activeCustomers.length / customers.length) * 100 : 0;
+      // The customers table stores no purchase-history columns, so retention is
+      // derived from the sales rows instead of total_purchases/last_purchase_date.
+      const thirtyDaysAgo = format(subDays(new Date(), 30), 'yyyy-MM-dd');
+      const recentBuyers = new Set(
+        sales
+          .filter((s: any) => s.customer_id && s.sale_date >= thirtyDaysAgo)
+          .map((s: any) => s.customer_id)
+      );
+      const customerRetention = customers.length > 0 ? (recentBuyers.size / customers.length) * 100 : 0;
 
       const totalStockValue = products.reduce((sum: number, p: any) => sum + (Number(p.stock_quantity) * Number(p.cost_price || 0)), 0);
       const totalSalesValue = sales.reduce((sum: number, s: any) => sum + Number(s.total_amount), 0);
