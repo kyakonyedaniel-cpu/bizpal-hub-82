@@ -1,5 +1,6 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
+import { lazy, Suspense } from "react";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -9,21 +10,24 @@ import { BranchProvider } from "@/contexts/BranchContext";
 import DashboardLayout from "@/components/DashboardLayout";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
-import Dashboard from "./pages/Dashboard";
-import Sales from "./pages/Sales";
-import Inventory from "./pages/Inventory";
-import Expenses from "./pages/Expenses";
-import Customers from "./pages/Customers";
-import Reports from "./pages/Reports";
-import Settings from "./pages/Settings";
-import POS from "./pages/POS";
-import Branches from "./pages/Branches";
-import StaffManagement from "./pages/StaffManagement";
-import Subscription from "./pages/Subscription";
-import AIInsights from "./pages/AIInsights";
-import AdminPayments from "./pages/AdminPayments";
 import ResetPassword from "./pages/ResetPassword";
 import NotFound from "./pages/NotFound";
+
+// Each dashboard page is loaded on demand so the first visit only downloads
+// the landing page instead of every module in the app.
+const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Sales = lazy(() => import("./pages/Sales"));
+const Inventory = lazy(() => import("./pages/Inventory"));
+const Expenses = lazy(() => import("./pages/Expenses"));
+const Customers = lazy(() => import("./pages/Customers"));
+const Reports = lazy(() => import("./pages/Reports"));
+const Settings = lazy(() => import("./pages/Settings"));
+const POS = lazy(() => import("./pages/POS"));
+const Branches = lazy(() => import("./pages/Branches"));
+const StaffManagement = lazy(() => import("./pages/StaffManagement"));
+const Subscription = lazy(() => import("./pages/Subscription"));
+const AIInsights = lazy(() => import("./pages/AIInsights"));
+const AdminPayments = lazy(() => import("./pages/AdminPayments"));
 
 const queryClient = new QueryClient();
 
@@ -31,7 +35,19 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex items-center justify-center min-h-screen"><div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" /></div>;
   if (!user) return <Navigate to="/auth" replace />;
-  return <DashboardLayout>{children}</DashboardLayout>;
+  return (
+    <DashboardLayout>
+      <Suspense
+        fallback={
+          <div className="flex items-center justify-center min-h-[60vh]">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary" />
+          </div>
+        }
+      >
+        {children}
+      </Suspense>
+    </DashboardLayout>
+  );
 };
 
 const App = () => (

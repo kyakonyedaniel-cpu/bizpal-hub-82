@@ -8,9 +8,9 @@ import { format, subDays } from 'date-fns';
 import { TrendingUp, Award, Download, FileSpreadsheet } from 'lucide-react';
 import { formatUGX } from '@/lib/currency';
 import { useToast } from '@/hooks/use-toast';
-import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
-import * as XLSX from 'xlsx';
+
+// jsPDF (~400 KB) and XLSX (~800 KB) are only needed when the user actually
+// exports, so they are loaded on demand instead of in the initial bundle.
 
 const COLORS = ['hsl(160, 60%, 38%)', 'hsl(38, 92%, 55%)', 'hsl(210, 80%, 55%)', 'hsl(0, 72%, 51%)', 'hsl(280, 60%, 50%)'];
 
@@ -93,11 +93,16 @@ const Reports = () => {
     fetchReports();
   }, [user]);
 
-  const exportPDF = () => {
+  const exportPDF = async () => {
     if (topProducts.length === 0 && dailyData.length === 0) {
       toast({ title: 'No data', description: 'There is no report data to export.', variant: 'destructive' });
       return;
     }
+
+    const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+      import('jspdf'),
+      import('jspdf-autotable'),
+    ]);
 
     const doc = new jsPDF();
     const today = format(new Date(), 'MMMM d, yyyy');
@@ -180,12 +185,13 @@ const Reports = () => {
     doc.save(`${businessName.replace(/\s+/g, '_')}_Report_${format(new Date(), 'yyyy-MM-dd')}.pdf`);
   };
 
-  const exportExcel = () => {
+  const exportExcel = async () => {
     if (topProducts.length === 0 && dailyData.length === 0) {
       toast({ title: 'No data', description: 'There is no report data to export.', variant: 'destructive' });
       return;
     }
 
+    const XLSX = await import('xlsx');
     const wb = XLSX.utils.book_new();
 
     // Summary sheet
